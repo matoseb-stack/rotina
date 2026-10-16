@@ -20,6 +20,9 @@ export function Header() {
               <Link to="/progresso" className="nav-link" aria-current={path === '/progresso' ? 'page' : undefined}>
                 Progresso
               </Link>
+              <Link to="/avisos" className="nav-link" aria-current={path === '/avisos' ? 'page' : undefined}>
+                Avisos
+              </Link>
             </>
           ) : (
             <>

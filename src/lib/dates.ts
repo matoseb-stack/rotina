@@ -19,12 +19,36 @@ export function addDays(d: Date, n: number): Date {
   return r
 }
 
-/** Sugere o período a partir do horário: antes das 12h manhã, antes das 18h tarde. */
+/** Horas oferecidas no seletor de cada período (a noite atravessa a madrugada). */
+export const PERIOD_HOURS: Record<Period, number[]> = {
+  manha: [5, 6, 7, 8, 9, 10, 11],
+  tarde: [12, 13, 14, 15, 16, 17],
+  noite: [18, 19, 20, 21, 22, 23, 0, 1, 2, 3, 4],
+}
+
+/** Sugere o período a partir do horário: 5h–11h manhã, 12h–17h tarde, resto noite. */
 export function suggestPeriod(time: string): Period {
   const hour = Number(time.split(':')[0])
-  if (Number.isNaN(hour) || hour < 12) return 'manha'
-  if (hour < 18) return 'tarde'
+  if (Number.isNaN(hour)) return 'manha'
+  if (hour >= 5 && hour < 12) return 'manha'
+  if (hour >= 12 && hour < 18) return 'tarde'
   return 'noite'
+}
+
+/** "07:30" -> 450 */
+export function toMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number)
+  return h * 60 + m
+}
+
+/** 450 -> "07:30" (dá a volta no dia) */
+export function fromMinutes(total: number): string {
+  const t = ((total % 1440) + 1440) % 1440
+  return `${pad(Math.floor(t / 60))}:${pad(t % 60)}`
+}
+
+export function pad2(n: number): string {
+  return pad(n)
 }
 
 export function formatLongDate(d: Date): string {

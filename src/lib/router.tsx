@@ -5,7 +5,7 @@ import { useEffect, useState, type AnchorHTMLAttributes, type MouseEvent } from 
 // para hospedagens que só servem um arquivo.
 const HASH = import.meta.env.VITE_ROUTER === 'hash'
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '')
-const PAGES = ['/rotina', '/progresso', '/privacidade']
+const PAGES = ['/rotina', '/progresso', '/avisos', '/privacidade']
 
 function currentPath(): string {
   if (HASH) {

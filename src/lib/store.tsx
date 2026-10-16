@@ -6,6 +6,8 @@ export interface Task {
   title: string
   time: string // HH:MM
   period: Period
+  /** Minutos de antecedência do aviso (0 = na hora). null = sem aviso. */
+  reminder: number | null
 }
 
 /** Registro de um dia: quais tarefas foram feitas e quantas existiam. */
@@ -24,7 +26,13 @@ const STORAGE_KEY = 'rotina-inteligente:v1'
 const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
 
 function exampleState(): State {
-  const task = (title: string, time: string, period: Period): Task => ({ id: newId(), title, time, period })
+  const task = (title: string, time: string, period: Period): Task => ({
+    id: newId(),
+    title,
+    time,
+    period,
+    reminder: 0,
+  })
   return {
     tasks: [
       task('Beber água e alongar', '07:00', 'manha'),
@@ -42,7 +50,10 @@ function load(): State {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as State
-      if (Array.isArray(parsed.tasks) && parsed.history) return parsed
+      if (Array.isArray(parsed.tasks) && parsed.history) {
+        // Versões anteriores não tinham aviso: passa a avisar na hora.
+        return { ...parsed, tasks: parsed.tasks.map((t) => ({ ...t, reminder: t.reminder === undefined ? 0 : t.reminder })) }
+      }
     }
   } catch {
     // localStorage indisponível ou dado corrompido: recomeça com o exemplo.

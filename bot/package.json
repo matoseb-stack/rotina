@@ -1,0 +1,11 @@
+{
+  "name": "rotina-inteligente-bot",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Bot de WhatsApp da Rotina Inteligente: avisa as tarefas na hora certa.",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server.mjs"
+  }
+}
