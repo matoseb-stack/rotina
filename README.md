@@ -1,37 +1,46 @@
-# 🌿 Rotina Inteligente
+# Rotina Inteligente
 
-Protótipo de um organizador de rotina simples, com visual natural e calmo.
-
-## O que faz
-
-- **Adicione tarefas com horário** — início, fim (opcional), cor e anotação.
-- **Repetição**: todo dia, dias úteis, toda semana ou só uma vez.
-- **Três vistas**: **Dia** (lista com progresso e checkbox de "feito"), **Semana** e **Mês**.
-- **Eventos futuros**: marque compromissos em qualquer data; os próximos aparecem na lateral.
-- Tudo fica salvo no próprio navegador (`localStorage`). Sem login, sem servidor.
-
-## Conectores
-
-| Conector | Status | O que faz |
-|---|---|---|
-| 📅 Calendário | ativo | Exporta a rotina em `.ics` (Google Agenda, Apple, Outlook), importa `.ics` e abre qualquer item direto no Google Agenda. |
-| 💬 WhatsApp | em breve | Hoje: envia o resumo do dia via `wa.me`. Futuro: bot com lembretes e criação de tarefas por mensagem. |
-
-O código dos conectores fica em `js/connectors.js`. O ponto de encaixe do bot de
-WhatsApp é `Conectores.WhatsApp.bot` (preencher `endpoint` e implementar `sincronizar`).
+Organizador de rotina diária simples, com estética natural.
+Vite + React + TypeScript, CSS puro com variáveis. Os dados ficam no `localStorage` do navegador (sem backend).
 
 ## Rodar
 
-É um site estático: abra `index.html` no navegador.
+```bash
+npm install
+npm run dev
+```
 
-Para publicar no **GitHub Pages**: *Settings → Pages → Deploy from a branch*, escolha a
-branch e a pasta `/ (root)`.
+Abra o endereço mostrado no terminal (normalmente http://localhost:5173).
+
+## Páginas
+
+- `/` Início: apresentação e o cartão "Hoje" funcionando.
+- `/rotina` Minha rotina: adicionar, editar, excluir e marcar tarefas. O período (Manhã/Tarde/Noite) é sugerido pelo horário.
+- `/progresso` Progresso: gráfico dos últimos 7 dias e sequência de dias com 100%.
+
+As tarefas se repetem todo dia. O "feito" recomeça a cada novo dia, e o histórico de cada data fica guardado.
+
+## Publicar (build estático)
+
+```bash
+npm run build
+```
+
+Envie a pasta `dist/` para qualquer hospedagem estática (Netlify, Vercel, Cloudflare Pages, GitHub Pages).
+O build já gera um `404.html` igual ao `index.html`, para que `/rotina` e `/progresso` funcionem ao recarregar a página.
+
+Se o site ficar numa subpasta (ex.: GitHub Pages em `usuario.github.io/rotina/`), defina o caminho base no build:
+
+```bash
+BASE_PATH=/rotina/ npm run build
+```
 
 ## Estrutura
 
 ```
-index.html          página
-css/style.css       visual (tons de papel, folha e terra)
-js/app.js           rotina, vistas dia/semana/mês, formulário
-js/connectors.js    calendário (.ics / Google) e WhatsApp
+src/
+  components/  Logo, Header, Footer, TodayCard, TaskItem, TaskForm, ProgressRing, WeekChart
+  pages/       Home, Rotina, Progresso, Privacidade
+  lib/         store.tsx (estado + localStorage), dates.ts, router.tsx (roteador mínimo)
+public/favicon.svg
 ```
