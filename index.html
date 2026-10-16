@@ -1,148 +1,18 @@
 <!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rotina Inteligente</title>
-  <meta name="description" content="Um organizador de rotina simples: dia, semana e mês num só lugar.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
-</head>
-<body>
-  <header class="topo">
-    <div class="marca">
-      <span class="folha" aria-hidden="true">🌿</span>
-      <div>
-        <h1>Rotina Inteligente</h1>
-        <p class="lema">um dia de cada vez, no seu ritmo</p>
-      </div>
-    </div>
-    <button class="btn btn-primario" id="btn-novo">+ Adicionar</button>
-  </header>
-
-  <main class="conteudo">
-    <section class="painel-calendario">
-      <div class="barra">
-        <div class="abas" role="tablist">
-          <button role="tab" class="aba ativa" data-vista="dia">Dia</button>
-          <button role="tab" class="aba" data-vista="semana">Semana</button>
-          <button role="tab" class="aba" data-vista="mes">Mês</button>
-        </div>
-        <div class="navegacao">
-          <button class="btn btn-icone" id="btn-anterior" aria-label="Anterior">‹</button>
-          <button class="btn btn-suave" id="btn-hoje">Hoje</button>
-          <button class="btn btn-icone" id="btn-proximo" aria-label="Próximo">›</button>
-        </div>
-      </div>
-      <h2 class="titulo-periodo" id="titulo-periodo"></h2>
-      <div id="vista"></div>
-    </section>
-
-    <aside class="lateral">
-      <section class="cartao">
-        <h3>Próximos eventos</h3>
-        <ul class="lista-proximos" id="lista-proximos"></ul>
-      </section>
-
-      <section class="cartao">
-        <h3>Conectores</h3>
-        <div class="conector">
-          <div class="conector-cab">
-            <span>📅 Calendário</span>
-            <span class="selo selo-ok">ativo</span>
-          </div>
-          <p class="discreto">Leve sua rotina para o Google Agenda, Apple ou Outlook (.ics), ou traga eventos de lá.</p>
-          <div class="botoes">
-            <button class="btn btn-suave" id="btn-exportar">Exportar .ics</button>
-            <label class="btn btn-suave">
-              Importar .ics
-              <input type="file" id="input-importar" accept=".ics,text/calendar" hidden>
-            </label>
-          </div>
-        </div>
-        <div class="conector">
-          <div class="conector-cab">
-            <span>💬 WhatsApp</span>
-            <span class="selo">em breve</span>
-          </div>
-          <p class="discreto">Em breve um bot vai lembrar você das tarefas e aceitar novos compromissos por mensagem. Por enquanto, envie o resumo do dia.</p>
-          <div class="botoes">
-            <button class="btn btn-suave" id="btn-whatsapp">Enviar resumo do dia</button>
-          </div>
-        </div>
-      </section>
-    </aside>
-  </main>
-
-  <footer class="rodape">
-    Protótipo · seus dados ficam só neste navegador
-  </footer>
-
-  <dialog id="dialogo">
-    <form method="dialog" id="formulario">
-      <h3 id="dialogo-titulo">Nova tarefa</h3>
-
-      <label>O que fazer
-        <input name="titulo" required maxlength="80" placeholder="Ex.: Caminhada, yoga, regar as plantas">
-      </label>
-
-      <div class="linha">
-        <label>Tipo
-          <select name="tipo">
-            <option value="tarefa">Tarefa da rotina</option>
-            <option value="evento">Evento</option>
-          </select>
-        </label>
-        <label>Repete
-          <select name="repete">
-            <option value="diario">Todo dia</option>
-            <option value="uteis">Dias úteis</option>
-            <option value="semanal">Toda semana</option>
-            <option value="nao">Não repete</option>
-          </select>
-        </label>
-      </div>
-
-      <div class="linha">
-        <label>Data <span class="discreto" id="rotulo-data">(a partir de)</span>
-          <input type="date" name="data" required>
-        </label>
-        <label>Início
-          <input type="time" name="inicio" required>
-        </label>
-        <label>Fim
-          <input type="time" name="fim">
-        </label>
-      </div>
-
-      <fieldset class="cores">
-        <legend>Cor</legend>
-        <label><input type="radio" name="cor" value="folha" checked><span class="bolinha cor-folha"></span>Folha</label>
-        <label><input type="radio" name="cor" value="terra"><span class="bolinha cor-terra"></span>Terra</label>
-        <label><input type="radio" name="cor" value="ceu"><span class="bolinha cor-ceu"></span>Céu</label>
-        <label><input type="radio" name="cor" value="flor"><span class="bolinha cor-flor"></span>Flor</label>
-      </fieldset>
-
-      <label>Anotação <span class="discreto">(opcional)</span>
-        <textarea name="nota" rows="2" maxlength="300"></textarea>
-      </label>
-
-      <div class="acoes">
-        <button type="button" class="btn btn-perigo" id="btn-excluir" hidden>Excluir</button>
-        <a class="btn btn-suave" id="link-google" target="_blank" rel="noopener" hidden>Google Agenda</a>
-        <span class="espaco"></span>
-        <button type="button" class="btn btn-suave" id="btn-cancelar">Cancelar</button>
-        <button type="submit" class="btn btn-primario" value="salvar">Salvar</button>
-      </div>
-    </form>
-  </dialog>
-
-  <div class="aviso" id="aviso" role="status" aria-live="polite"></div>
-
-  <script src="js/connectors.js"></script>
-  <script src="js/app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Rotina Inteligente: organize o dia sem esforço." />
+    <meta name="theme-color" content="#2E5A3C" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Nunito:wght@800&display=swap" rel="stylesheet" />
+    <title>Rotina Inteligente</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
