@@ -14,6 +14,7 @@ interface TaskItemProps {
 export function TaskItem({ task, done, editable = false, onToggle, onUpdate, onRemove }: TaskItemProps) {
   const id = useId()
   const [editing, setEditing] = useState(false)
+  const [confirming, setConfirming] = useState(false)
 
   if (editing && onUpdate) {
     return (
@@ -38,7 +39,17 @@ export function TaskItem({ task, done, editable = false, onToggle, onUpdate, onR
         <span className="task-title">{task.title}</span>
         <span className="task-time">{task.time}</span>
       </label>
-      {editable && (
+      {editable && confirming && (
+        <div className="task-confirm" role="group" aria-label={`Excluir ${task.title}?`}>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirming(false)}>
+            Cancelar
+          </button>
+          <button type="button" className="btn btn-danger btn-sm" onClick={onRemove} autoFocus>
+            Excluir
+          </button>
+        </div>
+      )}
+      {editable && !confirming && (
         <div className="task-actions">
           <button type="button" className="icon-btn" onClick={() => setEditing(true)} aria-label={`Editar ${task.title}`}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -49,9 +60,7 @@ export function TaskItem({ task, done, editable = false, onToggle, onUpdate, onR
           <button
             type="button"
             className="icon-btn"
-            onClick={() => {
-              if (window.confirm(`Excluir "${task.title}"?`)) onRemove?.()
-            }}
+            onClick={() => setConfirming(true)}
             aria-label={`Excluir ${task.title}`}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">

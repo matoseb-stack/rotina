@@ -179,6 +179,26 @@ a {
   background: var(--broto);
 }
 
+.btn-sm {
+  padding: 0 14px;
+  font-size: 0.875rem;
+}
+
+.btn-danger {
+  background: #9b3b2a;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #7f2f21;
+}
+
+.task-confirm {
+  display: flex;
+  flex: none;
+  gap: 4px;
+}
+
 .icon-btn {
   width: var(--toque);
   height: var(--toque);
