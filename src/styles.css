@@ -1354,3 +1354,150 @@ code {
     transition: none !important;
   }
 }
+
+/* ---------- Impressão ---------- */
+.rotina-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.rotina-footer .hint {
+  margin-top: 0;
+}
+
+.print-btn {
+  gap: 8px;
+}
+
+.print-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.print-sheet {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 12mm;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  /* No papel, só a folha da rotina. */
+  #root > *:not(main),
+  main > :not(.print-sheet) {
+    display: none !important;
+  }
+
+  .print-sheet {
+    display: block;
+    color: #1f2a22;
+    font-family: var(--fonte-corpo);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .print-head h1 {
+    font-size: 22pt;
+    color: var(--floresta);
+  }
+
+  .print-head p {
+    color: var(--texto-2);
+    font-size: 10pt;
+  }
+
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5pt;
+  }
+
+  .print-table th,
+  .print-table td {
+    border: 1px solid #c9d2c0;
+    padding: 6px 8px;
+    text-align: left;
+  }
+
+  .print-table thead th {
+    background: var(--broto);
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .print-time {
+    width: 62px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .print-day {
+    width: 52px;
+    text-align: center !important;
+  }
+
+  .print-table thead .print-day span {
+    display: block;
+    font-weight: 400;
+    color: var(--texto-2);
+    font-size: 9pt;
+  }
+
+  .print-period th {
+    background: var(--aveia);
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--texto-2);
+    padding: 4px 8px;
+  }
+
+  .print-box {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--floresta);
+    border-radius: 4px;
+  }
+
+  .print-table tr {
+    break-inside: avoid;
+  }
+
+  .print-notes {
+    margin-top: 16px;
+    break-inside: avoid;
+  }
+
+  .print-notes p {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .print-notes span {
+    display: block;
+    height: 26px;
+    border-bottom: 1px solid #c9d2c0;
+  }
+}
