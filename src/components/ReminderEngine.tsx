@@ -2,10 +2,14 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import {
   REMINDER_EVENT,
   announce,
+  confirmationKey,
   dueTasks,
+  fetchConfirmations,
   getConfig,
+  loadSeen,
   loadSent,
   reminderText,
+  saveSeen,
   saveSent,
   sendWhatsApp,
   sendsWhatsAppFromSite,
@@ -54,7 +58,7 @@ export function syncNow(tasks: Parameters<typeof syncBot>[0], done: string[], da
  * e mantém o servidor do bot sincronizado com a rotina.
  */
 export function ReminderEngine() {
-  const { tasks, doneToday, today } = useRoutine()
+  const { tasks, doneToday, today, setDone } = useRoutine()
   const config = useReminderConfig()
   const latest = useRef({ tasks, doneToday, today })
   latest.current = { tasks, doneToday, today }
@@ -92,6 +96,37 @@ export function ReminderEngine() {
     }, 800)
     return () => window.clearTimeout(timer)
   }, [tasks, doneToday, today, config.bot])
+
+  // Busca as tarefas confirmadas com "1" no WhatsApp e marca como feitas aqui.
+  useEffect(() => {
+    if (!config.bot.enabled || !config.bot.url) return
+    const pull = async () => {
+      try {
+        const { date, confirmations } = await fetchConfirmations()
+        const { today, tasks } = latest.current
+        if (date !== today) return
+        const seen = loadSeen(today)
+        const fresh = confirmations.filter((c) => !seen.has(confirmationKey(c)))
+        if (fresh.length === 0) return
+        for (const c of fresh) {
+          seen.add(confirmationKey(c))
+          setDone(c.id, true)
+          const task = tasks.find((t) => t.id === c.id)
+          if (task) announce(`Rotina Inteligente: "${task.title}" confirmada pelo WhatsApp.`)
+        }
+        saveSeen(today, seen)
+      } catch {
+        // servidor fora do ar: tenta de novo no próximo ciclo
+      }
+    }
+    pull()
+    const timer = window.setInterval(pull, 30_000)
+    document.addEventListener('visibilitychange', pull)
+    return () => {
+      window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', pull)
+    }
+  }, [config.bot, setDone])
 
   return null
 }

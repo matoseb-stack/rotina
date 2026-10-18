@@ -1289,6 +1289,142 @@ code {
   font-size: 0.9em;
 }
 
+/* Conversa de exemplo com o bot */
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 20px;
+  background: var(--broto);
+}
+
+.bubble {
+  max-width: 85%;
+  padding: 8px 12px;
+  border-radius: 16px;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.bubble-bot {
+  align-self: flex-start;
+  background: var(--branco);
+  border-bottom-left-radius: 4px;
+}
+
+.bubble-me {
+  align-self: flex-end;
+  background: var(--floresta);
+  color: #fff;
+  font-weight: 600;
+  border-bottom-right-radius: 4px;
+}
+
+/* Passo a passo */
+.guide {
+  border: 1.5px solid var(--borda);
+  border-radius: 20px;
+}
+
+.guide summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--toque);
+  padding: 8px 16px;
+  font-weight: 600;
+  color: var(--floresta);
+  cursor: pointer;
+}
+
+.guide-body {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.guide-part {
+  font-size: 1.05rem;
+  margin-top: 8px;
+}
+
+.guide-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.guide-step {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  min-width: 0;
+}
+
+.guide-step > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+
+.guide-step h4 {
+  margin: 2px 0 0;
+  font-size: 1rem;
+}
+
+.guide-n {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--floresta);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.guide-facts {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.vars {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 12px;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.vars dt {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.vars dd {
+  margin: 0;
+  color: var(--texto-2);
+  min-width: 0;
+}
+
+@media (max-width: 420px) {
+  .vars {
+    grid-template-columns: 1fr;
+  }
+
+  .vars dd {
+    margin-bottom: 6px;
+  }
+}
+
 /* ---------- Aviso na tela ---------- */
 .toast-region {
   position: fixed;

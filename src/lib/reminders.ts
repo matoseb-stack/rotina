@@ -167,8 +167,43 @@ export function syncBot(tasks: Task[], done: string[], date: string) {
     tasks,
     done,
     date,
+    seen: [...loadSeen(date)],
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   })
+}
+
+/* ---------------- Confirmações vindas do WhatsApp ("1") ---------------- */
+
+export interface Confirmation {
+  id: string
+  at: number
+}
+
+const SEEN_KEY = 'rotina-inteligente:confirmacoes-vistas'
+export const confirmationKey = (c: Confirmation) => `${c.id}@${c.at}`
+
+export function loadSeen(date: string): Set<string> {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SEEN_KEY) ?? 'null') as { date: string; keys: string[] } | null
+    if (saved?.date === date) return new Set(saved.keys)
+  } catch {
+    // ignora
+  }
+  return new Set()
+}
+
+export function saveSeen(date: string, keys: Set<string>) {
+  try {
+    localStorage.setItem(SEEN_KEY, JSON.stringify({ date, keys: [...keys] }))
+  } catch {
+    // ignora
+  }
+}
+
+export async function fetchConfirmations(): Promise<{ date: string; confirmations: Confirmation[] }> {
+  const res = await fetch(botUrl('/api/estado'), { headers: { Authorization: `Bearer ${config.bot.token}` } })
+  if (!res.ok) throw new Error(`O servidor respondeu ${res.status}.`)
+  return res.json()
 }
 
 export function testBot() {

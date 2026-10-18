@@ -98,6 +98,7 @@ interface RoutineContext {
   updateTask: (id: string, data: Omit<Task, 'id'>) => void
   removeTask: (id: string) => void
   toggleDone: (id: string) => void
+  setDone: (id: string, done: boolean) => void
 }
 
 const Ctx = createContext<RoutineContext | null>(null)
@@ -141,6 +142,16 @@ export function RoutineProvider({ children }: { children: ReactNode }) {
     [today],
   )
 
+  const setDone = useCallback(
+    (id: string, value: boolean) =>
+      setState((s) => {
+        const done = s.history[today]?.done ?? []
+        if (done.includes(id) === value) return s
+        return withToday(s, today, value ? [...done, id] : done.filter((x) => x !== id))
+      }),
+    [today],
+  )
+
   const value = useMemo<RoutineContext>(
     () => ({
       today,
@@ -151,8 +162,9 @@ export function RoutineProvider({ children }: { children: ReactNode }) {
       updateTask,
       removeTask,
       toggleDone,
+      setDone,
     }),
-    [today, state, addTask, updateTask, removeTask, toggleDone],
+    [today, state, addTask, updateTask, removeTask, toggleDone, setDone],
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

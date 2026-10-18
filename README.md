@@ -3,7 +3,7 @@
 Organizador de rotina diária simples, com estética natural, que avisa você pelo WhatsApp na hora de cada tarefa.
 Vite + React + TypeScript, CSS puro com variáveis. A rotina fica salva no `localStorage` do navegador.
 
-**Site:** https://matoseb-stack.github.io/rotina/ (depois de ativar o GitHub Pages, veja abaixo)
+**Site:** https://matoseb-stack.github.io/rotina/
 
 ## Rodar
 
@@ -27,40 +27,40 @@ Tarefa marcada como feita não gera aviso.
 
 ## Bot de WhatsApp
 
-Há dois jeitos de receber os avisos, e os dois usam o [CallMeBot](https://www.callmebot.com/blog/free-api-whatsapp-messages/)
-(gratuito, para uso pessoal):
+Na hora de cada tarefa o bot manda uma mensagem no WhatsApp. Responda:
 
-1. **Direto do site.** Em *Avisos*, siga os passos para liberar o bot no seu WhatsApp, cole seu número e a chave
-   (apikey) e toque em *Enviar teste*. Funciona enquanto o site estiver aberto em alguma aba.
-2. **Servidor do bot** (pasta `bot/`), para receber os avisos mesmo com o site fechado. O site envia a rotina ao
-   servidor sempre que ela muda, e o servidor manda as mensagens.
+- **1** (ou "feito") para marcar a tarefa como feita, inclusive no site;
+- **2** para lembrar de novo em 10 minutos;
+- **hoje** para ver a rotina do dia.
 
-### Rodar o servidor do bot
+Se você não responder, ele lembra mais uma vez depois de 15 minutos (`FOLLOWUP_MINUTES`).
 
-Node 18 ou mais novo, sem dependências:
+O bot fica na pasta `bot/` (Node 18+, sem dependências) e usa a WhatsApp Cloud API, da Meta, que é o que permite
+receber as respostas. O passo a passo completo, com cada tela da Meta e do Railway, está no site em
+**Avisos → Passo a passo para criar o bot**.
 
-```bash
-cd bot
-BOT_TOKEN=um-codigo-longo-e-secreto \
-CALLMEBOT_PHONE=+5511912345678 \
-CALLMEBOT_APIKEY=sua-chave \
-ALLOWED_ORIGIN=https://matoseb-stack.github.io \
-npm start
-```
+Há também o **aviso simples** pelo [CallMeBot](https://www.callmebot.com/blog/free-api-whatsapp-messages/), sem servidor:
+só avisa (não recebe o "1") e funciona enquanto o site estiver aberto.
 
-Publique em qualquer serviço que rode Node o tempo todo (Railway, Fly.io, um VPS ou um Raspberry Pi em casa).
-Planos gratuitos que "dormem" sem acesso (como o free do Render) podem atrasar ou perder avisos.
-Depois, em *Avisos → Servidor do bot*, cole o endereço público e o `BOT_TOKEN`.
+### Variáveis do servidor
 
 | Variável | Para quê |
 |---|---|
-| `BOT_TOKEN` | Código que o site usa para falar com o servidor (obrigatório) |
-| `CALLMEBOT_PHONE`, `CALLMEBOT_APIKEY` | Seu número e a chave do CallMeBot |
-| `WHATSAPP_PROVIDER` | `callmebot` (padrão), `cloud` (WhatsApp Cloud API da Meta) ou `log` (só imprime, para testes) |
-| `WA_TOKEN`, `WA_PHONE_NUMBER_ID`, `WA_TO` | Dados da WhatsApp Cloud API, se usar `cloud` |
-| `TZ_NAME` | Fuso dos horários (padrão: o do navegador que sincronizou, ou `America/Sao_Paulo`) |
-| `ALLOWED_ORIGIN` | Endereço do site liberado para sincronizar (padrão `*`) |
+| `BOT_TOKEN` | Código que o site usa para falar com o bot (obrigatório) |
+| `WHATSAPP_PROVIDER` | `cloud` (responde ao "1"), `callmebot` (só envia) ou `log` (só imprime, para testes) |
+| `WA_TOKEN`, `WA_PHONE_NUMBER_ID` | Token permanente e ID do número na WhatsApp Cloud API |
+| `WA_TO` | Seu WhatsApp, só números (ex. `5511912345678`) |
+| `WA_VERIFY_TOKEN` | Palavra que você inventa para validar o webhook na Meta |
+| `WA_APP_SECRET` | Chave secreta do app; o bot recusa chamadas que não vêm da Meta |
+| `WA_TEMPLATE`, `WA_TEMPLATE_LANG` | Modelo aprovado para os avisos (`lembrete_tarefa`, `pt_BR`) |
+| `FOLLOWUP_MINUTES` | Minutos até o segundo aviso (padrão 15; 0 desliga) |
+| `TZ_NAME` | Fuso dos horários (ex. `America/Sao_Paulo`) |
+| `ALLOWED_ORIGIN` | Endereço do site liberado (`https://matoseb-stack.github.io`) |
+| `CALLMEBOT_PHONE`, `CALLMEBOT_APIKEY` | Se usar `callmebot` |
 | `PORT`, `DATA_FILE` | Porta HTTP (8787) e arquivo onde a rotina fica salva |
+
+Rotas: `POST /api/rotina` e `GET /api/estado` (site, com `BOT_TOKEN`), `POST /api/teste`, `GET|POST /webhook` (Meta)
+e `GET /health`.
 
 ## Publicar no GitHub Pages
 
