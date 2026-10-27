@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #050505;
+  --color-neon-lime: #c6ff00;
+  --color-neon-cyan: #00f0ff;
+  --color-neon-purple: #b026ff;
+  --color-neon-pink: #ff2bd6;
+  --color-neon-red: #ff3b6b;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --animate-live-dot: live-dot 1.2s ease-in-out infinite;
+  --animate-fresh: fresh-flash 2.4s ease-out 1;
+}
+
+@keyframes live-dot {
+  50% { opacity: 0.25; transform: scale(0.8); }
+}
+
+@keyframes fresh-flash {
+  0% { box-shadow: 0 0 0 1px var(--accent, #ff2bd6), 0 0 28px -4px var(--accent, #ff2bd6); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+:root {
+  color-scheme: dark;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html {
+  background: #000;
+  -webkit-text-size-adjust: 100%;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+body {
+  background: #000;
+  color: #f4f7fa;
+  /* clip (e não hidden) evita overflow horizontal sem quebrar position: sticky. */
+  overflow-x: clip;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, a { touch-action: manipulation; }
+
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* ---------- Glassmorphism escuro ---------- */
+.glass {
+  position: relative;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.012) 60%);
+  border: 1px solid color-mix(in srgb, var(--accent, #ffffff) 14%, rgba(255, 255, 255, 0.07));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 20px 40px -24px rgba(0, 0, 0, 0.9);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+
+.hairline { background: rgba(255, 255, 255, 0.07); height: 1px; }
+
+/* ---------- Abas neon: brilho pulsante que alterna limão/ciano/roxo ---------- */
+.neon-pill {
+  border: 1px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 11%, rgba(0, 0, 0, 0.55));
+  animation: neon-shuffle 4.8s ease-in-out infinite;
+}
+
+@keyframes neon-shuffle {
+  0%, 100% {
+    box-shadow: 0 0 14px -2px color-mix(in srgb, var(--accent) 85%, transparent),
+      0 0 36px -8px color-mix(in srgb, #c6ff00 55%, transparent);
+  }
+  33% {
+    box-shadow: 0 0 24px 0 color-mix(in srgb, var(--accent) 95%, transparent),
+      0 0 44px -6px color-mix(in srgb, #00f0ff 55%, transparent);
+  }
+  66% {
+    box-shadow: 0 0 16px -2px color-mix(in srgb, var(--accent) 80%, transparent),
+      0 0 40px -6px color-mix(in srgb, #b026ff 60%, transparent);
+  }
+}
+
+.text-glow { text-shadow: 0 0 18px color-mix(in srgb, currentColor 55%, transparent); }
+
+/* ---------- Ticks de preço: entra deslizando e pisca verde/vermelho ---------- */
+.tick-up, .tick-down { display: inline-block; animation-duration: 0.9s; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+.tick-up { animation-name: tick-up; }
+.tick-down { animation-name: tick-down; }
+
+@keyframes tick-up {
+  0% { transform: translateY(45%); opacity: 0.2; color: #c6ff00; text-shadow: 0 0 16px rgba(198, 255, 0, 0.8); }
+  30% { transform: translateY(0); opacity: 1; color: #c6ff00; }
+}
+@keyframes tick-down {
+  0% { transform: translateY(-45%); opacity: 0.2; color: #ff3b6b; text-shadow: 0 0 16px rgba(255, 59, 107, 0.8); }
+  30% { transform: translateY(0); opacity: 1; color: #ff3b6b; }
+}
+
+/* Scroll horizontal sem barra (filtros no iPhone). */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .neon-pill, .tick-up, .tick-down, .animate-live-dot, .animate-fresh { animation: none !important; }
+}

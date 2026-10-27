@@ -93,3 +93,7 @@ public/favicon.svg
 ## Painel de Investimentos (Android)
 
 App Android nativo para tablet, em Jetpack Compose, com cotações em tempo real (dados simulados). Veja [`android-investimentos/`](android-investimentos/README.md).
+
+## Painel de Investimentos (Web / PWA)
+
+Versão web em Next.js + Tailwind, responsiva e instalável como PWA, com notícias reais da Folha (Mercado). Veja [`web-investimentos/`](web-investimentos/README.md).
