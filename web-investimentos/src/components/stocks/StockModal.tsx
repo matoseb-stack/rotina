@@ -4,7 +4,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useMarketData } from "@/hooks/useMarketData";
-import { fmt, signedBrl } from "@/lib/format";
+import { decimal, fmt, signedBrl } from "@/lib/format";
+
+const compactFmt = new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 });
+const compact = (v: number) => compactFmt.format(v);
 import type { MarketSnapshot } from "@/lib/market/types";
 import { cn } from "@/lib/utils";
 import { ChangeChip } from "@/components/ui/ChangeChip";
@@ -135,11 +138,21 @@ function ModalBody({ symbol, onClose }: { symbol: string; onClose: () => void })
             <div className="min-w-0 space-y-6">
               <StockChart quote={quote} />
 
-              <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-4">
+              <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
                 <Stat label="Abertura" value={fmt.brl(quote.open)} hint="Primeiro preço negociado no dia." />
                 <Stat label="Mínima do dia" value={fmt.brl(quote.dayLow)} hint="Menor preço negociado hoje." />
                 <Stat label="Máxima do dia" value={fmt.brl(quote.dayHigh)} hint="Maior preço negociado hoje." />
                 <Stat label="Fech. anterior" value={fmt.brl(quote.previousClose)} hint="Preço no fim do pregão anterior: base da variação do dia." />
+                <Stat
+                  label="Volume"
+                  value={quote.volume ? compact(quote.volume) : "—"}
+                  hint="Quantidade de ações negociadas hoje."
+                />
+                <Stat
+                  label="52 semanas"
+                  value={quote.fiftyTwoWeekLow && quote.fiftyTwoWeekHigh ? `${decimal(quote.fiftyTwoWeekLow)} – ${decimal(quote.fiftyTwoWeekHigh)}` : "—"}
+                  hint="Menor e maior preço do último ano."
+                />
               </dl>
 
               <div className="rounded-xl bg-surface-2 p-4">

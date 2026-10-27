@@ -5,7 +5,8 @@ import { fmt, signedBrl } from "@/lib/format";
 import type { Quote } from "@/lib/market/types";
 import { cn } from "@/lib/utils";
 import { ChangeChip } from "@/components/ui/ChangeChip";
-import { LivePrice, TickDot } from "@/components/ui/LivePrice";
+import { LivePrice } from "@/components/ui/LivePrice";
+import { Sparkline } from "@/components/ui/Sparkline";
 import { StockLogo } from "@/components/ui/StockLogo";
 
 interface StockCardProps {
@@ -13,11 +14,9 @@ interface StockCardProps {
   onOpen: (symbol: string) => void;
 }
 
-/** Card mínimo: logo, ticker, preço, variação e o ponto do tick de 1 s. */
+/** Card mínimo: logo, ticker, preço, variação e o gráfico real do pregão. */
 export const StockCard = memo(function StockCard({ quote, onOpen }: StockCardProps) {
   const up = quote.changePct >= 0;
-  const h = quote.history;
-  const lastMoveUp = h.length < 2 || h[h.length - 1] >= h[h.length - 2];
   return (
     <button
       type="button"
@@ -34,7 +33,6 @@ export const StockCard = memo(function StockCard({ quote, onOpen }: StockCardPro
           <p className="text-sm leading-tight font-semibold">{quote.symbol}</p>
           <p className="truncate text-xs text-muted">{quote.name}</p>
         </div>
-        <TickDot tick={quote.price} up={lastMoveUp} className="self-start" />
       </div>
 
       <div>
@@ -44,6 +42,12 @@ export const StockCard = memo(function StockCard({ quote, onOpen }: StockCardPro
           <span className={cn("tnum hidden text-xs sm:inline", up ? "text-up" : "text-down")}>{signedBrl(quote.change)}</span>
         </div>
       </div>
+
+      {quote.stale ? (
+        <p className="text-xs text-subtle">Sem cotação no momento</p>
+      ) : (
+        <Sparkline data={quote.history} up={up} height={32} />
+      )}
     </button>
   );
 });

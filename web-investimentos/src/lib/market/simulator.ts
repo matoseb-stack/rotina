@@ -1,5 +1,5 @@
 import { BOND_SEEDS, INDEX_SEED, MACRO, STOCK_SEEDS } from "./seeds";
-import type { Bond, BondSeed, MarketSnapshot, Quote, StockSeed } from "./types";
+import type { Bond, BondSeed, SimulatedSnapshot, Quote, StockSeed } from "./types";
 
 const HISTORY_SIZE = 60;
 
@@ -61,13 +61,13 @@ function bondFrom(seed: BondSeed, rate: number, prev?: Bond): Bond {
  */
 export class MarketSimulator {
   private opens: Map<string, number> | null = null;
-  private snapshot: MarketSnapshot;
+  private snapshot: SimulatedSnapshot;
 
   constructor(private readonly random: () => number = Math.random) {
     this.snapshot = MarketSimulator.initialSnapshot();
   }
 
-  static initialSnapshot(): MarketSnapshot {
+  static initialSnapshot(): SimulatedSnapshot {
     const stocks = STOCK_SEEDS.map((s) => quoteFrom(s, s.previousClose));
     return {
       tick: 0,
@@ -79,7 +79,7 @@ export class MarketSimulator {
     };
   }
 
-  step(now: number): MarketSnapshot {
+  step(now: number): SimulatedSnapshot {
     const prev = this.snapshot;
     if (!this.opens) {
       // Abre o "pregão" com um gap aleatório para já existirem altas e baixas.

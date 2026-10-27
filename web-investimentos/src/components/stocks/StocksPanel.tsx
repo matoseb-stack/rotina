@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { useMarketData } from "@/hooks/useMarketData";
+import { refreshMarket, useMarketData } from "@/hooks/useMarketData";
 import { fmt } from "@/lib/format";
-import { buildHistory } from "@/lib/market/history";
 import type { Quote } from "@/lib/market/types";
 import { cn } from "@/lib/utils";
 import { ChangeChip } from "@/components/ui/ChangeChip";
@@ -23,6 +22,7 @@ const SORTS: { id: SortKey; label: string }[] = [
 
 export function StocksPanel() {
   const stocks = useMarketData((s) => s.stocks);
+  const status = useMarketData((s) => s.status);
   const [sort, setSort] = useState<SortKey>("ticker");
   const [openSymbol, setOpenSymbol] = useState<string | null>(null);
   const open = useCallback((symbol: string) => setOpenSymbol(symbol), []);
@@ -36,8 +36,11 @@ export function StocksPanel() {
     return list;
   }, [stocks, sort]);
 
+  if (status === "loading") return <LoadingGrid />;
+
   return (
     <div className="flex flex-col gap-6">
+      <SourceBar />
       <MarketOverview stocks={stocks} onOpen={open} />
 
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -87,8 +90,6 @@ function MarketOverview({ stocks, onOpen }: { stocks: Quote[]; onOpen: (symbol: 
     };
   }, [stocks]);
   const up = index.changePct >= 0;
-  // Curva do pregão de hoje (mesma série do gráfico 1D), terminando no valor ao vivo.
-  const intraday = useMemo(() => buildHistory(index, "1D", Date.now()).map((p) => p.price), [index]);
 
   return (
     <div className="grid gap-3 sm:gap-4 lg:grid-cols-3">
@@ -104,7 +105,7 @@ function MarketOverview({ stocks, onOpen }: { stocks: Quote[]; onOpen: (symbol: 
           <LivePrice value={index.price} format={fmt.points} className="text-2xl font-semibold tracking-tight" />
           <ChangeChip value={index.changePct} size="md" />
         </div>
-        <Sparkline data={intraday} up={up} height={44} className="mt-3" />
+        <Sparkline data={index.history} up={up} height={44} className="mt-3" />
         <p className="mt-2 text-xs text-muted">
           <span className="text-up">{advancers} em alta</span> · <span className="text-down">{stocks.length - advancers} em baixa</span> entre as ações acompanhadas
         </p>
@@ -136,6 +137,50 @@ function MoversCard({ title, items, onOpen }: { title: string; items: Quote[]; o
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+/** De onde vêm os números e quando foram atualizados. */
+function SourceBar() {
+  const source = useMarketData((s) => s.source);
+  const marketTime = useMarketData((s) => s.marketTime);
+  const fetchedAt = useMarketData((s) => s.fetchedAt);
+  const notice = useMarketData((s) => s.notice);
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+        {source === "yahoo" ? (
+          <>
+            <span className="font-medium text-fg">Cotações reais</span>
+            <span>· Yahoo Finance, atraso de até 15 min</span>
+            {marketTime && <span className="tnum">· última negociação {fmt.fullDate(marketTime)}</span>}
+          </>
+        ) : (
+          <span className="font-medium text-down">Valores simulados</span>
+        )}
+        <button type="button" onClick={refreshMarket} className="tnum rounded px-1 text-accent hover:underline">
+          atualizado às {fmt.hour(fetchedAt)} ↻
+        </button>
+      </p>
+      {notice && <p className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-muted">{notice}</p>}
+    </div>
+  );
+}
+
+function LoadingGrid() {
+  return (
+    <div className="flex flex-col gap-6" aria-busy aria-label="Carregando cotações">
+      <div className="grid gap-3 sm:gap-4 lg:grid-cols-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="card h-48 animate-pulse" />
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
+        {Array.from({ length: 8 }, (_, i) => (
+          <div key={i} className="card h-40 animate-pulse" />
+        ))}
+      </div>
     </div>
   );
 }

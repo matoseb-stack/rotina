@@ -96,4 +96,6 @@ App Android nativo para tablet, em Jetpack Compose, com cotações em tempo real
 
 ## Painel de Investimentos (Web / PWA)
 
-Versão web em Next.js + Tailwind, com tema claro/escuro, gráficos por ativo e notícias da Folha de S.Paulo. Publicada pelo mesmo workflow do GitHub Pages em `/investimentos`. Veja [`web-investimentos/`](web-investimentos/README.md) para colocar no ar (Vercel ou GitHub Pages).
+**Link: https://matoseb-stack.github.io/rotina/investimentos/**
+
+Versão web em Next.js + Tailwind com cotações e gráficos reais da B3 (Yahoo Finance), indicadores do Banco Central, notícias da Folha de S.Paulo e tema claro/escuro. Veja [`web-investimentos/`](web-investimentos/README.md).

@@ -12,6 +12,8 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH || undefined;
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   basePath,
+  // O repositório tem outro package-lock na raiz (app Rotina): fixa a raiz deste projeto.
+  turbopack: { root: process.cwd() },
   ...(isStaticExport
     ? { output: "export", trailingSlash: true, images: { unoptimized: true } }
     : {

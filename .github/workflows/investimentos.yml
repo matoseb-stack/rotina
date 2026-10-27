@@ -1,0 +1,54 @@
+name: Publicar Painel de Investimentos
+
+# Publica só a pasta /investimentos na branch gh-pages (o app Rotina na raiz não é tocado).
+on:
+  push:
+    branches: [main, claude/tablet-investment-dashboard-ac32bf]
+    paths: ["web-investimentos/**", ".github/workflows/investimentos.yml"]
+  schedule:
+    # Pregão da B3 (10h–18h em Brasília = 13h–21h UTC), dias úteis: cotações a cada 15 min.
+    - cron: "*/15 13-21 * * 1-5"
+    # Fora do pregão: de hora em hora, para as notícias.
+    - cron: "41 * * * *"
+  # O workflow da raiz publica com force_orphan e apaga /investimentos: republica logo depois.
+  workflow_run:
+    workflows: ["Publicar no GitHub Pages"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web-investimentos/package-lock.json
+      - name: Gerar o painel (Next.js, export estático com cotações e notícias do momento)
+        working-directory: web-investimentos
+        run: |
+          npm ci
+          npm run build:static
+        env:
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}/investimentos
+      - name: Conferir se as cotações vieram da fonte real
+        working-directory: web-investimentos
+        run: node -e "const q=require('./out/api/market/quotes.json');console.log('fonte:',q.source,'| IBOV',q.index.price,'| aviso:',q.notice||'-')"
+      - name: Enviar para gh-pages/investimentos
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./web-investimentos/out
+          publish_branch: gh-pages
+          destination_dir: investimentos
+          keep_files: true
+          commit_message: "Painel de Investimentos: atualiza cotações e notícias"

@@ -38,7 +38,15 @@ export interface Quote {
   dayHigh: number;
   change: number;
   changePct: number;
+  /** Preços do pregão (intraday, 5 em 5 min) usados no mini gráfico. */
   history: number[];
+  volume?: number;
+  /** Horário da última negociação (ms). */
+  marketTime?: number;
+  fiftyTwoWeekHigh?: number;
+  fiftyTwoWeekLow?: number;
+  /** true quando a fonte real falhou para este ativo e o valor é de referência. */
+  stale?: boolean;
 }
 
 export interface Bond {
@@ -57,14 +65,50 @@ export interface Bond {
 export interface MacroIndicator {
   label: string;
   value: string;
+  /** Data de referência informada pelo Banco Central (dd/mm/aaaa). */
+  date?: string;
 }
 
-/** Estado imutável do mercado num instante. Um objeto novo por tick. */
-export interface MarketSnapshot {
+/** Pregão regular da B3 (ms), para saber se o mercado está aberto. */
+export interface TradingSession {
+  start: number;
+  end: number;
+}
+
+/** O que /api/market/quotes.json entrega. */
+export interface MarketPayload {
+  source: "yahoo" | "simulado";
+  fetchedAt: number;
+  /** Última negociação entre todos os ativos (ms). */
+  marketTime: number | null;
+  session: TradingSession | null;
+  index: Quote;
+  stocks: Quote[];
+  macro: MacroIndicator[];
+  macroSource: "bcb" | "referencia";
+  notice?: string;
+}
+
+/** Série de preços de um ativo por período: /api/market/history/<TICKER>.json. */
+export interface HistoryPayload {
+  symbol: string;
+  fetchedAt: number;
+  series: Partial<Record<"1D" | "5D" | "1M" | "6M" | "1Y" | "ALL", { t: number; price: number }[]>>;
+  previousClose?: number;
+  error?: string;
+}
+
+/** Estado imutável do simulador (usado para o Tesouro e como reserva). */
+export interface SimulatedSnapshot {
   tick: number;
   updatedAt: number;
   index: Quote;
   stocks: Quote[];
   bonds: Bond[];
   macro: MacroIndicator[];
+}
+
+/** Estado do mercado no cliente: cotações reais + status do carregamento. */
+export interface MarketSnapshot extends MarketPayload {
+  status: "loading" | "ready";
 }

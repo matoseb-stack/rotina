@@ -21,9 +21,9 @@ export const COMPANY_SOURCES: Record<string, CompanySource> = {
   SUZB3: { query: "Suzano celulose", keywords: ["Suzano"] },
   PRIO3: { query: "PRIO petroleira", keywords: ["Prio", "PRIO", "PetroRio"] },
   MGLU3: { query: "Magazine Luiza", keywords: ["Magazine Luiza", "Magalu"] },
-  ELET3: { topic: "eletrobras", query: "Eletrobras", keywords: ["Eletrobras"] },
+  AXIA3: { topic: "eletrobras", query: "Axia Energia Eletrobras", keywords: ["Eletrobras", "Axia"] },
   RDOR3: { query: "Rede D'Or hospitais", keywords: ["Rede D'Or", "Rede Dor"] },
-  EMBR3: { topic: "embraer", query: "Embraer", keywords: ["Embraer"] },
+  EMBJ3: { topic: "embraer", query: "Embraer", keywords: ["Embraer"] },
 };
 
 export function companyMoreUrl(symbol: string): string {

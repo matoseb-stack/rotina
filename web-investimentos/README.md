@@ -1,9 +1,11 @@
 # Painel de Investimentos · Web
 
-Painel de investimentos em tempo real com visual **clean e institucional**,
-temas **claro e escuro**, e notícias da **Folha de S.Paulo**. Funciona no
-navegador de qualquer laptop, PC ou celular (iPhone/Android) e pode ser
-instalado como app (PWA).
+**🔗 Link público: https://matoseb-stack.github.io/rotina/investimentos/**
+
+Painel de investimentos com **cotações e gráficos reais da B3**, visual
+**clean e institucional**, temas **claro e escuro** e notícias da
+**Folha de S.Paulo**. Funciona no navegador de qualquer laptop, PC ou celular
+(iPhone/Android) e pode ser instalado como app (PWA).
 
 ![Ações, tema claro](docs/acoes-claro.jpg)
 
@@ -13,8 +15,18 @@ instalado como app (PWA).
 
 ![iPhone](docs/iphone.jpg)
 
-> **Dados:** cotações, taxas e indicadores são **simulados** (atualizados a cada
-> 1 s). As **notícias são reais**: manchetes e links da Folha de S.Paulo.
+> **De onde vêm os dados**
+>
+> | O quê | Fonte | Atualização |
+> |---|---|---|
+> | Cotações, variação, volume, 52 semanas | **Yahoo Finance** (B3, atraso de até 15 min) | a cada 60 s na Vercel · a cada 15 min no GitHub Pages durante o pregão |
+> | Gráficos 1D · 5D · 1M · 6M · 1Y · ALL | **Yahoo Finance** (histórico real) | 5 min na Vercel · 15 min no GitHub Pages |
+> | Selic Meta, CDI, IPCA 12m | **Banco Central** (SGS: séries 432, 4389, 13522) | 1 h |
+> | Notícias gerais e por ação | **Folha de S.Paulo** | 15 min na Vercel · 1 h no GitHub Pages |
+> | Taxas dos títulos do Tesouro Direto | **simuladas** (o Tesouro desativou a API pública) | 1 s |
+>
+> Se o Yahoo Finance ficar indisponível, o painel avisa e mostra valores de
+> referência ou simulados, sempre sinalizados.
 
 ---
 
@@ -23,9 +35,10 @@ instalado como app (PWA).
 Escolha **uma** das opções. As duas geram um endereço `https://...` que abre em
 qualquer navegador, inclusive no celular.
 
-### Opção A: Vercel (recomendada, ~3 minutos)
+### Opção A: Vercel (cotações mais frescas, ~3 minutos)
 
-As notícias se atualizam sozinhas a cada 15 minutos, sem precisar de rebuild.
+Na Vercel o servidor busca as cotações a cada 60 s e as notícias a cada 15 min,
+sem precisar de rebuild.
 
 1. Acesse **https://vercel.com** e entre com sua conta do **GitHub**.
 2. Clique em **Add New… → Project** e escolha o repositório **`rotina`**
@@ -37,25 +50,25 @@ As notícias se atualizam sozinhas a cada 15 minutos, sem precisar de rebuild.
 5. Pronto. Cada `git push` na branch principal publica uma nova versão
    automaticamente. Outras branches ganham links de *preview*.
 
-### Opção B: GitHub Pages (grátis, no próprio repositório)
+### Opção B: GitHub Pages (já configurado neste repositório)
 
-O workflow `.github/workflows/pages.yml` já está pronto. Ele publica o app
-"Rotina" na raiz e este painel em **`/investimentos`**, e republica a cada hora
-para trazer notícias novas.
+O link **https://matoseb-stack.github.io/rotina/investimentos/** é publicado
+pelo workflow `.github/workflows/investimentos.yml`. Ele:
 
-1. Faça o merge desta branch na **`main`** (ou rode o workflow manualmente,
-   passo 3).
-2. No GitHub, abra **Settings → Pages** e, em *Build and deployment*, deixe
-   **Source: Deploy from a branch** com a branch **`gh-pages`** / pasta **`/ (root)`**.
-3. Em **Actions → Publicar no GitHub Pages**, clique em **Run workflow**
-   (pode escolher a branch) e espere ficar verde (~2 min).
-4. Acesse: **`https://<seu-usuario>.github.io/rotina/investimentos/`**
-   (ex.: `https://matoseb-stack.github.io/rotina/investimentos/`).
+- gera o painel como site estático, já com cotações, gráficos e notícias do momento;
+- publica **só** a pasta `/investimentos` na branch `gh-pages`, sem mexer no
+  app Rotina que fica na raiz;
+- roda a cada push que altera `web-investimentos/`.
 
-> No GitHub Pages as notícias são gravadas em arquivos estáticos a cada
-> publicação. O agendamento de hora em hora mantém tudo atualizado. O GitHub
-> pausa agendamentos em repositórios sem atividade há 60 dias; nesse caso, é
-> só rodar o workflow de novo.
+Para o link se **atualizar sozinho** (a cada 15 min no pregão e de hora em
+hora fora dele), o workflow precisa estar na branch padrão: **faça o merge
+desta branch na `main`**. O GitHub só executa agendamentos (`schedule`) a
+partir da branch padrão.
+
+Para publicar em outro repositório/fork: **Settings → Pages → Deploy from a
+branch → `gh-pages` / `(root)`**, depois **Actions → Publicar Painel de
+Investimentos → Run workflow**. O endereço fica
+`https://<usuario>.github.io/<repositorio>/investimentos/`.
 
 ### Instalar como app no celular
 
@@ -89,14 +102,15 @@ framer-motion · TypeScript.
 - **Grid de cards** das 15 principais ações (2 colunas no celular, 3 no tablet,
   4 no desktop), ordenável por A–Z, maiores altas ou maiores baixas.
 - Cada card mostra logo, ticker, preço, variação, uma faixa verde/vermelha
-  discreta e um ponto que **pulsa a cada atualização (1 s)**.
+  discreta e o **gráfico real do pregão**.
 - **Modal deep-dive** ao clicar:
   1. **Cabeçalho:** logo, nome, ticker, preço e variação ao vivo.
-  2. **Gráfico (Recharts)** com períodos `1D · 5D · 1M · 6M · 1Y · ALL`,
+  2. **Gráfico real (Recharts)** com períodos `1D · 5D · 1M · 6M · 1Y · ALL`,
      tooltip, linha do fechamento anterior e variação no período.
   3. **Notícias do ativo (Folha de S.Paulo)** à direita, com título, resumo,
      horário e link direto para a matéria (`target="_blank"`).
-  4. Abertura, mínima, máxima, fechamento anterior e um "Sobre a empresa".
+  4. Abertura, mínima, máxima, fechamento anterior, volume, faixa de 52
+     semanas e um "Sobre a empresa".
 
 ### Tesouro Direto
 Indicadores no topo (Selic Meta, CDI, IPCA 12m) e uma coluna por tipo:
@@ -119,13 +133,18 @@ Cada item abre a matéria original na Folha.
   primeira pintura**, sem "piscar" o tema errado. O botão ☀️/🌙 no topo alterna
   e salva a escolha.
 
-### Tempo real
-- `src/lib/market/store.ts` roda o loop de 1 s fora do React. Componentes leem
-  com `useMarketData(seletor)` (`useSyncExternalStore`), então só quem usa o
-  dado re-renderiza. O loop pausa quando a aba fica oculta.
-- O gráfico usa uma série histórica simulada **determinística por ativo**
-  (`src/lib/market/history.ts`). O desenho é estável e o último ponto segue o
-  preço ao vivo.
+### Cotações e gráficos reais
+- `src/lib/market/real/` consulta a API pública de gráficos do Yahoo Finance
+  (`PETR4.SA`, `^BVSP`...) no **servidor ou no build**. O navegador não acessa
+  o Yahoo direto (sem CORS).
+- `/api/market/quotes.json`: preço, variação, abertura, mínima/máxima,
+  volume, faixa de 52 semanas e a curva do dia de cada ativo + Selic/CDI/IPCA
+  do Banco Central.
+- `/api/market/history/<TICKER>.json`: as 6 séries do gráfico (1D em 5 min,
+  5D em 30 min, 1M/6M/1Y diários, ALL mensal).
+- No navegador, `src/lib/market/store.ts` recarrega as cotações a cada 60 s
+  (só com a aba visível). Componentes leem com `useMarketData(seletor)`
+  (`useSyncExternalStore`), e só quem usa o dado re-renderiza.
 
 ### Notícias da Folha
 | Arquivo gerado | Origem |
@@ -151,8 +170,10 @@ src/
 │   ├── globals.css                   # design system (tokens claro/escuro)
 │   ├── manifest.ts
 │   └── api/
-│       ├── news.json/route.ts        # notícias gerais (Folha · Mercado)
-│       └── asset-news/[file]/route.ts# notícias por ativo
+│       ├── market/quotes.json/route.ts     # cotações reais + macro (BCB)
+│       ├── market/history/[file]/route.ts  # histórico real por ativo
+│       ├── news.json/route.ts              # notícias gerais (Folha · Mercado)
+│       └── asset-news/[file]/route.ts      # notícias por ativo
 ├── components/
 │   ├── layout/      AppHeader · BottomNav
 │   ├── theme/       ThemeToggle
@@ -160,7 +181,7 @@ src/
 │   ├── treasury/    TreasuryPanel
 │   ├── news/        NewsPanel
 │   └── ui/          StockLogo · LivePrice/TickDot · ChangeChip · Sparkline · Icon
-├── hooks/           useMarketData · useNewsFeed · useAssetNews · useNow
+├── hooks/           useMarketData · useStockHistory · useNewsFeed · useAssetNews · useNow
 └── lib/
     ├── market/      seeds · simulator · store · history
     ├── news/        folha · companies · company-sources · classify · mock · types
@@ -169,4 +190,4 @@ src/
 
 > Em ambientes que exigem proxy HTTP para sair à internet, rode o build com
 > `NODE_USE_ENV_PROXY=1` (Node 22+). Sem isso, o `fetch` do Node ignora o
-> proxy e as notícias caem no modo simulado.
+> proxy e cotações e notícias caem no modo de reserva.

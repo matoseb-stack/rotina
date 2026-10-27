@@ -60,7 +60,7 @@ export function Dashboard() {
           </motion.section>
         </AnimatePresence>
         <p className="mt-10 text-center text-xs text-subtle">
-          Cotações e taxas simuladas para demonstração · Notícias: Folha de S.Paulo
+          Cotações: Yahoo Finance (atraso de até 15 min) · Indicadores: Banco Central · Notícias: Folha de S.Paulo · Taxas do Tesouro simuladas
         </p>
       </main>
       <BottomNav active={active} onChange={select} />

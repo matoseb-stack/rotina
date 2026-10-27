@@ -1,6 +1,6 @@
 "use client";
 
-import { useMarketData } from "@/hooks/useMarketData";
+import { useMarketData, useTreasuryData } from "@/hooks/useMarketData";
 import { fmt } from "@/lib/format";
 import type { Bond, BondKind } from "@/lib/market/types";
 import { cn } from "@/lib/utils";
@@ -19,8 +19,9 @@ const RATE_FORMAT: Record<BondKind, (r: number) => string> = {
 };
 
 export function TreasuryPanel() {
-  const bonds = useMarketData((s) => s.bonds);
+  const bonds = useTreasuryData((s) => s.bonds);
   const macro = useMarketData((s) => s.macro);
+  const macroSource = useMarketData((s) => s.macroSource);
 
   return (
     <div className="flex flex-col gap-6">
@@ -29,9 +30,14 @@ export function TreasuryPanel() {
           <div key={m.label} className="card p-3 sm:p-5">
             <dt className="text-xs text-muted sm:text-sm">{m.label}</dt>
             <dd className="tnum mt-1 text-lg font-semibold tracking-tight sm:text-2xl">{m.value}</dd>
+            {m.date && <dd className="mt-0.5 text-[11px] text-subtle">ref. {m.date}</dd>}
           </div>
         ))}
       </dl>
+      <p className="-mt-3 text-xs text-subtle">
+        {macroSource === "bcb" ? "Indicadores reais do Banco Central (SGS)." : "Indicadores de referência (Banco Central indisponível)."}{" "}
+        Taxas e preços dos títulos abaixo são <strong className="font-medium">simulados</strong>.
+      </p>
 
       <div className="grid gap-4 md:grid-cols-3">
         {GROUPS.map((g) => (

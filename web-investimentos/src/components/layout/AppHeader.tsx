@@ -2,22 +2,26 @@
 
 import { motion } from "framer-motion";
 import { useMarketData } from "@/hooks/useMarketData";
+import { useNow } from "@/hooks/useNow";
 import { fmt } from "@/lib/format";
 import { TABS, type TabId } from "@/lib/tabs";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { TickDot } from "@/components/ui/LivePrice";
 
-/** Status do mercado: só este pedaço se inscreve no tick de 1 s. */
+/** Status do pregão e horário da última negociação recebida. */
 function MarketStatus() {
-  const tick = useMarketData((s) => s.tick);
-  const updatedAt = useMarketData((s) => s.updatedAt);
+  const fetchedAt = useMarketData((s) => s.fetchedAt);
+  const marketTime = useMarketData((s) => s.marketTime);
+  const session = useMarketData((s) => s.session);
+  const source = useMarketData((s) => s.source);
+  const now = useNow(30_000);
+  const open = source === "yahoo" && session !== null && now >= session.start && now < session.end;
   return (
-    <span className="inline-flex items-center gap-2 text-xs text-muted">
-      {/* Verde = conectado; pulsa a cada tick. */}
-      <TickDot tick={tick} up />
-      <span className="hidden sm:inline">Ao vivo ·</span>
-      <span className="tnum">{fmt.clock(updatedAt)}</span>
+    <span className="inline-flex items-center gap-2 text-xs text-muted" title="Cotações do Yahoo Finance, com atraso de até 15 minutos">
+      <TickDot tick={fetchedAt} tone={open ? "up" : "idle"} />
+      <span className="hidden sm:inline">{source === "simulado" ? "Simulado ·" : open ? "Pregão aberto ·" : "Pregão fechado ·"}</span>
+      <span className="tnum">{marketTime ? fmt.hour(marketTime) : "--:--"}</span>
     </span>
   );
 }

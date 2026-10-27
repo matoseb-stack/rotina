@@ -31,12 +31,14 @@ export function LivePrice({ value, format, className }: LivePriceProps) {
   );
 }
 
-/** Ponto que pulsa a cada atualização (1 s), na cor do último movimento. */
-export function TickDot({ tick, up, className }: { tick: number; up: boolean; className?: string }) {
+const TONE = { up: "bg-up", down: "bg-down", idle: "bg-subtle" } as const;
+
+/** Ponto que pulsa a cada atualização recebida. */
+export function TickDot({ tick, tone, className }: { tick: number; tone: keyof typeof TONE; className?: string }) {
   return (
     <span className={cn("relative inline-flex size-2", className)} aria-hidden>
-      <span key={tick} className={cn("tick-dot absolute inset-0 rounded-full", up ? "bg-up" : "bg-down")} />
-      <span className={cn("relative size-2 rounded-full", up ? "bg-up" : "bg-down")} />
+      <span key={tick} className={cn("tick-dot absolute inset-0 rounded-full", TONE[tone])} />
+      <span className={cn("relative size-2 rounded-full", TONE[tone])} />
     </span>
   );
 }

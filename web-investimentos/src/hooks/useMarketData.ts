@@ -1,25 +1,29 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { marketStore } from "@/lib/market/store";
-import type { MarketSnapshot } from "@/lib/market/types";
-
-const identity = (s: MarketSnapshot) => s;
+import { marketStore, treasuryStore } from "@/lib/market/store";
+import type { MarketSnapshot, SimulatedSnapshot } from "@/lib/market/types";
 
 /**
- * Fluxo de cotações em tempo real (1 tick/s).
- *
- * Passe um seletor para inscrever o componente só no pedaço que ele usa:
- *   const petr = useMarketData((s) => s.blueChips[0]);
- * O seletor deve devolver algo que já existe no snapshot (ou um primitivo),
- * nunca um objeto/array novo, para manter a referência estável.
+ * Cotações reais (Yahoo Finance, atraso de até ~15 min), recarregadas a cada 60 s.
+ * Passe um seletor para re-renderizar só quando aquele pedaço mudar; ele deve
+ * devolver algo do próprio snapshot (ou um primitivo), nunca um objeto novo.
  */
-export function useMarketData(): MarketSnapshot;
-export function useMarketData<T>(selector: (snapshot: MarketSnapshot) => T): T;
-export function useMarketData<T>(selector: (snapshot: MarketSnapshot) => T = identity as (s: MarketSnapshot) => T): T {
+export function useMarketData<T>(selector: (snapshot: MarketSnapshot) => T): T {
   return useSyncExternalStore(
     marketStore.subscribe,
     () => selector(marketStore.getSnapshot()),
     () => selector(marketStore.getServerSnapshot()),
   );
 }
+
+/** Títulos do Tesouro (simulados, 1 tick/s). */
+export function useTreasuryData<T>(selector: (snapshot: SimulatedSnapshot) => T): T {
+  return useSyncExternalStore(
+    treasuryStore.subscribe,
+    () => selector(treasuryStore.getSnapshot()),
+    () => selector(treasuryStore.getServerSnapshot()),
+  );
+}
+
+export const refreshMarket = () => void marketStore.refresh();
