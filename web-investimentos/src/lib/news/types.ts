@@ -1,44 +1,58 @@
 export type NewsCategory =
   | "Copom"
-  | "Câmbio"
-  | "Política Fiscal"
+  | "Fed & BCs"
   | "Inflação"
-  | "Tesouro"
+  | "Política Fiscal"
+  | "Política"
+  | "Câmbio"
+  | "Renda Fixa"
   | "Empresas"
   | "Commodities"
+  | "Mercados"
   | "Economia";
 
-export type NewsFilter = "all" | "macro" | "acoes" | "cambio" | "tesouro";
+/** Filtros rápidos da central de notícias. */
+export type NewsFilter = "all" | "macro" | "acoes" | "global" | "rendafixa";
 
-export type NewsImpact = "alto" | "medio" | "baixo";
+export type NewsImpact = "alto" | "medio" | "neutro";
 
-export interface NewsSource {
+export interface NewsSourceRef {
+  /** id em NEWS_SOURCES (ex.: "valor", "bloomberg"). */
+  id: string;
   name: string;
-  /** "folha" = manchete real do RSS; "simulado" = conteúdo de demonstração. */
-  kind: "folha" | "simulado";
 }
 
 export interface NewsItem {
   id: string;
   title: string;
-  /** Resumo executivo de uma linha. */
+  /** Resumo de uma linha (vazio quando o feed não traz descrição). */
   summary: string;
-  /** Trecho completo disponibilizado pelo feed, mostrado no leitor. */
-  excerpt: string;
   url: string;
-  author?: string;
   publishedAt: number;
   category: NewsCategory;
   filter: Exclude<NewsFilter, "all">;
   impact: NewsImpact;
-  source: NewsSource;
+  source: NewsSourceRef;
+  lang: "pt" | "en";
+  /** Intermediário do link, quando não é direto (ex.: "Google News"). */
+  via?: string;
+  /** Conteúdo de demonstração (nunca atribuído a um veículo real). */
+  simulated?: boolean;
+}
+
+export interface NewsSourceStatus {
+  id: string;
+  name: string;
+  ok: boolean;
+  count: number;
 }
 
 export interface NewsFeed {
   items: NewsItem[];
-  source: NewsSource["kind"];
   fetchedAt: number;
-  /** Preenchido quando o feed real falhou e o simulado entrou no lugar. */
+  sources: NewsSourceStatus[];
+  /** true quando nenhuma fonte respondeu e o feed é de demonstração. */
+  simulated: boolean;
   notice?: string;
 }
 
@@ -46,38 +60,47 @@ export const FOLHA_MERCADO_URL = "https://www1.folha.uol.com.br/mercado/";
 
 export const NEWS_FILTERS: { id: NewsFilter; label: string }[] = [
   { id: "all", label: "Todas" },
-  { id: "macro", label: "Macro" },
-  { id: "acoes", label: "Ações" },
-  { id: "cambio", label: "Câmbio" },
-  { id: "tesouro", label: "Tesouro" },
+  { id: "macro", label: "Macro & Política" },
+  { id: "acoes", label: "B3 / Ações" },
+  { id: "global", label: "EUA & Global" },
+  { id: "rendafixa", label: "Renda Fixa / Câmbio" },
 ];
 
 /** Tons sóbrios que funcionam nos dois temas (texto na cor, fundo com 10% de opacidade). */
 export const CATEGORY_COLORS: Record<NewsCategory, string> = {
   Copom: "#7C3AED",
-  "Câmbio": "#0891B2",
-  "Política Fiscal": "#DB2777",
+  "Fed & BCs": "#2563EB",
   "Inflação": "#D97706",
-  Tesouro: "#4F46E5",
+  "Política Fiscal": "#DB2777",
+  Política: "#64748B",
+  "Câmbio": "#0891B2",
+  "Renda Fixa": "#4F46E5",
   Empresas: "#059669",
   Commodities: "#CA8A04",
+  Mercados: "#0D9488",
   Economia: "#64748B",
 };
 
-/** Manchete da Folha sobre um ativo específico (página de tópico ou busca). */
+/** Manchete sobre um ativo específico (Folha para a B3, imprensa global para os EUA). */
 export interface AssetNewsItem {
   id: string;
   title: string;
   summary: string;
   url: string;
   publishedAt: number | null;
+  /** Veículo que publicou (quando o feed agrega vários). */
+  source?: string;
 }
 
 export interface AssetNewsFeed {
   symbol: string;
   items: AssetNewsItem[];
-  /** Página da Folha com mais notícias sobre a empresa. */
+  /** Quem fornece as manchetes (ex.: "Folha de S.Paulo", "Reuters, Bloomberg, CNBC..."). */
+  sourceLabel: string;
+  lang: "pt" | "en";
+  /** Página com mais notícias sobre o ativo. */
   moreUrl: string;
+  moreLabel: string;
   fetchedAt: number;
   error?: string;
 }

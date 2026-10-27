@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useMarketData } from "@/hooks/useMarketData";
-import { decimal, fmt, signedBrl } from "@/lib/format";
+import { decimal, fmt, money, signedMoney } from "@/lib/format";
 
 const compactFmt = new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 });
 const compact = (v: number) => compactFmt.format(v);
@@ -41,7 +41,12 @@ export function StockModal({ symbol, onClose }: StockModalProps) {
 
 function ModalBody({ symbol, onClose }: { symbol: string; onClose: () => void }) {
   // Seletor devolve o objeto do próprio snapshot: re-renderiza só quando o ativo muda.
-  const quote = useMarketData((s: MarketSnapshot) => s.stocks.find((q) => q.symbol === symbol)!);
+  const quote = useMarketData(
+    (s: MarketSnapshot) => s.stocks.find((q) => q.symbol === symbol) ?? s.us.find((q) => q.symbol === symbol) ?? s.etfs.find((q) => q.symbol === symbol)!,
+  );
+  const fxRate = useMarketData((s: MarketSnapshot) => s.fx.price);
+  const usd = quote.currency === "USD";
+  const format = (v: number) => money(v, quote.currency);
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -99,21 +104,23 @@ function ModalBody({ symbol, onClose }: { symbol: string; onClose: () => void })
       >
         {/* Cabeçalho */}
         <header className="flex shrink-0 items-start gap-3 border-b border-line px-4 pt-[max(var(--safe-top),1rem)] pb-4 sm:px-6 sm:pt-5">
-          <StockLogo symbol={quote.symbol} name={quote.name} brandColor={quote.brandColor} size={48} />
+          <StockLogo symbol={quote.symbol} name={quote.name} brandColor={quote.brandColor} market={quote.market} size={48} />
           <div className="min-w-0 flex-1">
             <h2 id="stock-modal-title" className="truncate text-lg font-semibold sm:text-xl">
               {quote.name}
             </h2>
             <p className="text-sm text-muted">
-              <span className="font-medium text-fg">{quote.symbol}</span> · {quote.sector}
+              <span className="font-medium text-fg">{quote.symbol}</span> · {quote.kind === "etf" ? `ETF · acompanha ${quote.sector}` : quote.sector}
+              {usd && " · NYSE/Nasdaq"}
             </p>
           </div>
           <div className="hidden text-right sm:block">
-            <LivePrice value={quote.price} format={fmt.brl} className="text-2xl font-semibold tracking-tight" />
+            <LivePrice value={quote.price} format={format} className="text-2xl font-semibold tracking-tight" />
             <div className="mt-1 flex items-center justify-end gap-2">
-              <span className={cn("tnum text-sm", up ? "text-up" : "text-down")}>{signedBrl(quote.change)}</span>
+              <span className={cn("tnum text-sm", up ? "text-up" : "text-down")}>{signedMoney(quote.change, quote.currency)}</span>
               <ChangeChip value={quote.changePct} size="md" />
             </div>
+            {usd && <p className="tnum mt-1 text-xs text-muted">≈ {fmt.brl(quote.price * fxRate)} · dólar a {fmt.brl(fxRate)}</p>}
           </div>
           <button
             ref={closeRef}
@@ -129,20 +136,21 @@ function ModalBody({ symbol, onClose }: { symbol: string; onClose: () => void })
         <div className="overflow-y-auto overscroll-contain pb-[var(--safe-bottom)]">
           {/* Preço no celular (no desktop fica no cabeçalho). */}
           <div className="flex items-center gap-3 px-4 pt-4 sm:hidden">
-            <LivePrice value={quote.price} format={fmt.brl} className="text-2xl font-semibold tracking-tight" />
+            <LivePrice value={quote.price} format={format} className="text-2xl font-semibold tracking-tight" />
             <ChangeChip value={quote.changePct} size="md" />
-            <span className={cn("tnum text-sm", up ? "text-up" : "text-down")}>{signedBrl(quote.change)}</span>
+            <span className={cn("tnum text-sm", up ? "text-up" : "text-down")}>{signedMoney(quote.change, quote.currency)}</span>
           </div>
+          {usd && <p className="tnum px-4 pt-1 text-xs text-muted sm:hidden">≈ {fmt.brl(quote.price * fxRate)} · dólar a {fmt.brl(fxRate)}</p>}
 
           <div className="grid gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1fr)_340px]">
             <div className="min-w-0 space-y-6">
               <StockChart quote={quote} />
 
               <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
-                <Stat label="Abertura" value={fmt.brl(quote.open)} hint="Primeiro preço negociado no dia." />
-                <Stat label="Mínima do dia" value={fmt.brl(quote.dayLow)} hint="Menor preço negociado hoje." />
-                <Stat label="Máxima do dia" value={fmt.brl(quote.dayHigh)} hint="Maior preço negociado hoje." />
-                <Stat label="Fech. anterior" value={fmt.brl(quote.previousClose)} hint="Preço no fim do pregão anterior: base da variação do dia." />
+                <Stat label="Abertura" value={format(quote.open)} hint="Primeiro preço negociado no dia." />
+                <Stat label="Mínima do dia" value={format(quote.dayLow)} hint="Menor preço negociado hoje." />
+                <Stat label="Máxima do dia" value={format(quote.dayHigh)} hint="Maior preço negociado hoje." />
+                <Stat label="Fech. anterior" value={format(quote.previousClose)} hint="Preço no fim do pregão anterior: base da variação do dia." />
                 <Stat
                   label="Volume"
                   value={quote.volume ? compact(quote.volume) : "—"}
@@ -156,13 +164,13 @@ function ModalBody({ symbol, onClose }: { symbol: string; onClose: () => void })
               </dl>
 
               <div className="rounded-xl bg-surface-2 p-4">
-                <p className="text-sm font-semibold">Sobre a empresa</p>
+                <p className="text-sm font-semibold">{quote.kind === "etf" ? "Sobre o ETF" : "Sobre a empresa"}</p>
                 <p className="mt-1 text-sm text-muted">{quote.about}</p>
               </div>
             </div>
 
             <aside className="lg:border-l lg:border-line lg:pl-6">
-              <AssetNews symbol={quote.symbol} name={quote.name.replace(/ (ON|PN)$/, "")} />
+              <AssetNews symbol={quote.symbol} market={quote.market} name={quote.name.replace(/ (ON|PN)$/, "")} />
             </aside>
           </div>
         </div>

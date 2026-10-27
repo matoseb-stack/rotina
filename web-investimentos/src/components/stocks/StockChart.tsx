@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useStockHistory } from "@/hooks/useStockHistory";
-import { chartFmt, decimal, fmt } from "@/lib/format";
+import { chartFmt, decimal, fmt, money } from "@/lib/format";
 import { PERIODS, type Period } from "@/lib/market/periods";
 import type { Quote } from "@/lib/market/types";
 import { useTheme } from "@/lib/theme";
@@ -134,7 +134,7 @@ export function StockChart({ quote }: { quote: Quote }) {
                       <div className="rounded-lg border border-line bg-surface px-3 py-2 text-xs shadow-pop">
                         <p className="text-muted">{chartFmt.tooltip(point.t, period)}</p>
                         <p className="tnum mt-0.5 text-sm font-semibold">
-                          {quote.symbol === "IBOV" ? fmt.points(point.price) : fmt.brl(point.price)}
+                          {quote.kind === "index" ? fmt.points(point.price) : money(point.price, quote.currency)}
                         </p>
                       </div>
                     );
@@ -157,7 +157,7 @@ export function StockChart({ quote }: { quote: Quote }) {
       </div>
       <p className="mt-2 text-xs text-subtle">
         Fonte: Yahoo Finance (atraso de até 15 min).
-        {period === "1D" && baseline ? ` Linha tracejada: fechamento anterior (${fmt.brl(baseline)}).` : ""}
+        {period === "1D" && baseline ? ` Linha tracejada: fechamento anterior (${money(baseline, quote.currency)}).` : ""}
       </p>
     </div>
   );

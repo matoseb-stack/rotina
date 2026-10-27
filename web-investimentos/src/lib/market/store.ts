@@ -1,30 +1,9 @@
 import { withBase } from "../base-path";
+import { createExternalStore } from "../external-store";
 import { MarketSimulator } from "./simulator";
 import type { MarketPayload, MarketSnapshot, SimulatedSnapshot } from "./types";
-import { MACRO } from "./seeds";
-
-type Listener = () => void;
-
-/** Store externo mínimo para useSyncExternalStore. */
-function createExternalStore<T>(initial: T, onFirstSubscribe: () => void, onLastUnsubscribe: () => void) {
-  let snapshot = initial;
-  const listeners = new Set<Listener>();
-  return {
-    get: () => snapshot,
-    set(next: T) {
-      snapshot = next;
-      listeners.forEach((l) => l());
-    },
-    subscribe(listener: Listener) {
-      listeners.add(listener);
-      if (listeners.size === 1) queueMicrotask(onFirstSubscribe);
-      return () => {
-        listeners.delete(listener);
-        if (listeners.size === 0) onLastUnsubscribe();
-      };
-    },
-  };
-}
+import { ETF_SEEDS, FX_SEED, GLOBAL_INDEX_SEEDS, MACRO, US_STOCK_SEEDS } from "./seeds";
+import { quoteFrom } from "./simulator";
 
 /**
  * Cotações reais: busca /api/market/quotes.json (Yahoo Finance + Banco Central)
@@ -38,8 +17,13 @@ export function createMarketStore(pollMs = 60_000) {
     fetchedAt: 0,
     marketTime: null,
     session: null,
+    usSession: null,
     index: sim.index,
     stocks: sim.stocks,
+    us: US_STOCK_SEEDS.map((s) => quoteFrom(s, s.previousClose)),
+    etfs: ETF_SEEDS.map((s) => quoteFrom(s, s.previousClose)),
+    global: GLOBAL_INDEX_SEEDS.map((s) => quoteFrom(s, s.previousClose)),
+    fx: quoteFrom(FX_SEED, FX_SEED.previousClose),
     macro: MACRO,
     macroSource: "referencia",
   };

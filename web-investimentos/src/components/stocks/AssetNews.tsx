@@ -3,23 +3,28 @@
 import { useAssetNews } from "@/hooks/useAssetNews";
 import { useNow } from "@/hooks/useNow";
 import { fmt } from "@/lib/format";
-import { companyMoreUrl } from "@/lib/news/company-sources";
+import { DETAIL_SEEDS } from "@/lib/market/seeds";
+import type { Market } from "@/lib/market/types";
+import { assetMoreUrl } from "@/lib/news/company-sources";
 import { Icon } from "@/components/ui/Icon";
 
-/** Notícias da Folha de S.Paulo sobre o ativo selecionado. */
-export function AssetNews({ symbol, name }: { symbol: string; name: string }) {
+/** Notícias do ativo: Folha de S.Paulo (B3) ou imprensa financeira global, em inglês (EUA). */
+export function AssetNews({ symbol, name, market }: { symbol: string; name: string; market: Market }) {
   const state = useAssetNews(symbol);
   const now = useNow();
-  const moreUrl = state.status === "ready" ? state.feed.moreUrl : companyMoreUrl(symbol);
-  const items = state.status === "ready" ? state.feed.items : [];
+  const feed = state.status === "ready" ? state.feed : null;
+  const global = market === "us";
+  const moreUrl = feed?.moreUrl ?? assetMoreUrl(symbol, market, DETAIL_SEEDS.find((s) => s.symbol === symbol)?.newsQuery);
+  const moreLabel = feed?.moreLabel ?? (global ? "Mais notícias no Google News" : "Mais notícias na Folha");
+  const items = feed?.items ?? [];
 
   return (
     <section aria-labelledby="asset-news-title" className="flex min-h-0 flex-col">
       <div className="flex items-baseline justify-between gap-2">
         <h3 id="asset-news-title" className="text-sm font-semibold">
-          Notícias
+          Notícias {global && <span className="ml-1 rounded bg-surface-2 px-1 py-px text-[10px] font-medium text-muted">EN</span>}
         </h3>
-        <span className="text-xs text-subtle">Folha de S.Paulo</span>
+        <span className="truncate text-xs text-subtle">{feed?.sourceLabel ?? (global ? "Imprensa global" : "Folha de S.Paulo")}</span>
       </div>
 
       {state.status === "loading" && (
@@ -36,9 +41,7 @@ export function AssetNews({ symbol, name }: { symbol: string; name: string }) {
 
       {state.status !== "loading" && items.length === 0 && (
         <p className="mt-3 rounded-lg border border-dashed border-line p-4 text-sm text-muted">
-          {state.status === "error"
-            ? "Não foi possível carregar as notícias agora."
-            : `Nenhuma notícia recente da Folha sobre ${name}.`}
+          {state.status === "error" ? "Não foi possível carregar as notícias agora." : `Nenhuma notícia recente sobre ${name}.`}
         </p>
       )}
 
@@ -52,15 +55,19 @@ export function AssetNews({ symbol, name }: { symbol: string; name: string }) {
                 rel="noopener noreferrer"
                 className="group block p-3 transition-colors hover:bg-surface-2 focus-visible:bg-surface-2 focus-visible:outline-none"
               >
-                {item.publishedAt && (
-                  <time dateTime={new Date(item.publishedAt).toISOString()} className="tnum text-xs text-subtle">
-                    {now - item.publishedAt < 86_400_000 ? fmt.relative(item.publishedAt, now) : fmt.fullDate(item.publishedAt)}
-                  </time>
-                )}
+                <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-subtle">
+                  {item.source && <span className="font-medium text-muted">{item.source}</span>}
+                  {item.source && item.publishedAt && <span aria-hidden>·</span>}
+                  {item.publishedAt && (
+                    <time dateTime={new Date(item.publishedAt).toISOString()} className="tnum">
+                      {now - item.publishedAt < 86_400_000 ? fmt.relative(item.publishedAt, now) : fmt.fullDate(item.publishedAt)}
+                    </time>
+                  )}
+                </p>
                 <p className="mt-1 line-clamp-3 text-sm leading-snug font-medium group-hover:text-accent">{item.title}</p>
                 {item.summary && <p className="mt-1 line-clamp-2 text-xs text-muted">{item.summary}</p>}
                 <span className="mt-1.5 inline-flex items-center gap-1 text-xs text-subtle">
-                  Ler na Folha <Icon name="external" className="size-3" />
+                  Ler matéria <Icon name="external" className="size-3" />
                 </span>
               </a>
             </li>
@@ -74,7 +81,7 @@ export function AssetNews({ symbol, name }: { symbol: string; name: string }) {
         rel="noopener noreferrer"
         className="mt-3 inline-flex items-center gap-1 self-start text-sm font-medium text-accent hover:underline"
       >
-        Mais notícias sobre {name} na Folha <Icon name="external" className="size-3.5" />
+        {moreLabel} <Icon name="external" className="size-3.5" />
       </a>
     </section>
   );

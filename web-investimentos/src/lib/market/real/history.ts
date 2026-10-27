@@ -1,5 +1,5 @@
 import "server-only";
-import type { HistoryPayload } from "../types";
+import type { HistoryPayload, StockSeed } from "../types";
 import { fetchYahooChart, mapLimit } from "./yahoo";
 
 export const HISTORY_REVALIDATE = 300;
@@ -16,14 +16,15 @@ const QUERIES = {
 
 type PeriodKey = keyof typeof QUERIES;
 
-export async function fetchRealHistory(symbol: string): Promise<HistoryPayload> {
+export async function fetchRealHistory(seed: StockSeed): Promise<HistoryPayload> {
+  const symbol = seed.symbol;
   const series: HistoryPayload["series"] = {};
   let previousClose: number | undefined;
   const errors: string[] = [];
   await mapLimit(Object.keys(QUERIES) as PeriodKey[], 3, async (period) => {
     const { range, interval } = QUERIES[period];
     try {
-      const chart = await fetchYahooChart(symbol, range, interval, HISTORY_REVALIDATE);
+      const chart = await fetchYahooChart(seed, range, interval, HISTORY_REVALIDATE);
       series[period] = chart.points.map(({ t, price }) => ({ t, price: Math.round(price * 100) / 100 }));
       if (period === "1D") previousClose = chart.meta.chartPreviousClose ?? chart.meta.previousClose;
     } catch (error) {

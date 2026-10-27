@@ -26,6 +26,12 @@ export const COMPANY_SOURCES: Record<string, CompanySource> = {
   EMBJ3: { topic: "embraer", query: "Embraer", keywords: ["Embraer"] },
 };
 
+/** Página com mais notícias de um ativo: Folha (B3) ou Google News em inglês (EUA). */
+export function assetMoreUrl(symbol: string, market: "b3" | "us", newsQuery?: string): string {
+  if (market === "b3") return companyMoreUrl(symbol);
+  return `https://news.google.com/search?q=${encodeURIComponent(newsQuery ?? `${symbol} stock`)}&hl=en-US&gl=US&ceid=US:en`;
+}
+
 export function companyMoreUrl(symbol: string): string {
   const source = COMPANY_SOURCES[symbol];
   if (source?.topic) return `https://www1.folha.uol.com.br/folha-topicos/${source.topic}/`;

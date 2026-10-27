@@ -1,6 +1,6 @@
 import "server-only";
-import { INDEX_SEED, MACRO, STOCK_SEEDS } from "../seeds";
-import { MarketSimulator } from "../simulator";
+import { ETF_SEEDS, FX_SEED, GLOBAL_INDEX_SEEDS, INDEX_SEED, MACRO, STOCK_SEEDS, US_STOCK_SEEDS } from "../seeds";
+import { MarketSimulator, quoteFrom } from "../simulator";
 import type { MacroIndicator, MarketPayload, Quote, StockSeed, TradingSession } from "../types";
 import { fetchYahooChart, mapLimit, type YahooChart } from "./yahoo";
 
@@ -16,6 +16,9 @@ function quoteFromYahoo(seed: StockSeed, { meta, points }: YahooChart): Quote {
     symbol: seed.symbol,
     name: seed.name,
     sector: seed.sector,
+    market: seed.market ?? "b3",
+    currency: seed.currency ?? "BRL",
+    kind: seed.kind ?? "stock",
     about: seed.about,
     brandColor: seed.brandColor,
     previousClose,
@@ -35,11 +38,7 @@ function quoteFromYahoo(seed: StockSeed, { meta, points }: YahooChart): Quote {
 
 /** Valor de referência (sem variação) quando um ativo específico falha. */
 function staleQuote(seed: StockSeed): Quote {
-  const p = seed.previousClose;
-  return {
-    symbol: seed.symbol, name: seed.name, sector: seed.sector, about: seed.about, brandColor: seed.brandColor,
-    previousClose: p, open: p, price: p, dayLow: p, dayHigh: p, change: 0, changePct: 0, history: [], stale: true,
-  };
+  return { ...quoteFrom(seed, seed.previousClose), history: [], stale: true };
 }
 
 const pct = (v: string) => `${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
@@ -71,46 +70,57 @@ async function fetchMacro(): Promise<{ macro: MacroIndicator[]; source: MarketPa
 }
 
 export async function fetchRealMarket(): Promise<MarketPayload> {
-  const seeds = [INDEX_SEED, ...STOCK_SEEDS];
-  let failures = 0;
-  let session: TradingSession | null = null;
+  const seeds = [INDEX_SEED, ...STOCK_SEEDS, ...US_STOCK_SEEDS, ...ETF_SEEDS, ...GLOBAL_INDEX_SEEDS, FX_SEED];
+  const sessions: { b3: TradingSession | null; us: TradingSession | null } = { b3: null, us: null };
+  const failed = new Set<string>();
+
   const [quotes, { macro, source: macroSource }] = await Promise.all([
     mapLimit(seeds, 4, async (seed) => {
       try {
-        const chart = await fetchYahooChart(seed.symbol, "1d", "5m", QUOTES_REVALIDATE);
+        const chart = await fetchYahooChart(seed, "1d", "5m", QUOTES_REVALIDATE);
         const regular = chart.meta.currentTradingPeriod?.regular;
-        if (regular && !session) session = { start: regular.start * 1000, end: regular.end * 1000 };
+        const key = seed.market === "us" ? "us" : "b3";
+        if (regular && seed.kind !== "fx" && !sessions[key]) sessions[key] = { start: regular.start * 1000, end: regular.end * 1000 };
         return quoteFromYahoo(seed, chart);
       } catch (error) {
-        failures++;
+        failed.add(seed.symbol);
         console.warn(`[quotes] ${seed.symbol}:`, error instanceof Error ? error.message : error);
         return staleQuote(seed);
       }
     }),
     fetchMacro(),
   ]);
+  const bySymbol = new Map(quotes.map((q) => [q.symbol, q]));
+  const pick = (list: StockSeed[]) => list.map((s) => bySymbol.get(s.symbol)!);
 
-  // Fonte real fora do ar: devolve um retrato simulado, sinalizado na interface.
-  if (failures === seeds.length) {
+  // Fonte real fora do ar: retrato simulado da B3, sinalizado na interface.
+  if (failed.size === seeds.length) {
     const sim = new MarketSimulator().step(Date.now());
     return {
-      source: "simulado", fetchedAt: Date.now(), marketTime: null, session: null,
-      index: sim.index, stocks: sim.stocks, macro, macroSource,
+      source: "simulado", fetchedAt: Date.now(), marketTime: null, session: null, usSession: null,
+      index: sim.index, stocks: sim.stocks,
+      us: pick(US_STOCK_SEEDS), etfs: pick(ETF_SEEDS), global: pick(GLOBAL_INDEX_SEEDS), fx: bySymbol.get(FX_SEED.symbol)!,
+      macro, macroSource,
       notice: "Não foi possível obter cotações reais agora. Exibindo valores simulados.",
     };
   }
 
-  const [index, ...stocks] = quotes;
-  const times = quotes.map((q) => q.marketTime ?? 0).filter(Boolean);
+  const b3 = [INDEX_SEED, ...STOCK_SEEDS].map((s) => bySymbol.get(s.symbol)!);
+  const times = b3.map((q) => q.marketTime ?? 0).filter(Boolean);
   return {
     source: "yahoo",
     fetchedAt: Date.now(),
     marketTime: times.length ? Math.max(...times) : null,
-    session,
-    index,
-    stocks,
+    session: sessions.b3,
+    usSession: sessions.us,
+    index: bySymbol.get(INDEX_SEED.symbol)!,
+    stocks: pick(STOCK_SEEDS),
+    us: pick(US_STOCK_SEEDS),
+    etfs: pick(ETF_SEEDS),
+    global: pick(GLOBAL_INDEX_SEEDS),
+    fx: bySymbol.get(FX_SEED.symbol)!,
     macro,
     macroSource,
-    notice: failures ? `${failures} ativo(s) sem cotação no momento; exibindo o último fechamento conhecido.` : undefined,
+    notice: failed.size ? `${failed.size} ativo(s) sem cotação no momento; exibindo o último valor de referência.` : undefined,
   };
 }

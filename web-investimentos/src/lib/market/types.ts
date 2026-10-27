@@ -1,7 +1,19 @@
+export type Market = "b3" | "us";
+export type Currency = "BRL" | "USD";
+export type AssetKind = "stock" | "etf" | "index" | "fx";
+
 export interface StockSeed {
   symbol: string;
   name: string;
   sector: string;
+  /** Padrão: ação da B3 em reais. */
+  market?: Market;
+  currency?: Currency;
+  kind?: AssetKind;
+  /** Símbolo no Yahoo Finance (padrão: "<TICKER>.SA" na B3, o próprio ticker nos EUA). */
+  yahoo?: string;
+  /** Busca de notícias internacionais (Google News) para ativos dos EUA. */
+  newsQuery?: string;
   previousClose: number;
   /** Desvio-padrão do retorno a cada tick (1 s). */
   volatility: number;
@@ -29,6 +41,9 @@ export interface Quote {
   symbol: string;
   name: string;
   sector: string;
+  market: Market;
+  currency: Currency;
+  kind: AssetKind;
   about: string;
   brandColor: string;
   previousClose: number;
@@ -79,11 +94,22 @@ export interface TradingSession {
 export interface MarketPayload {
   source: "yahoo" | "simulado";
   fetchedAt: number;
-  /** Última negociação entre todos os ativos (ms). */
+  /** Última negociação entre os ativos da B3 (ms). */
   marketTime: number | null;
+  /** Pregão regular da B3. */
   session: TradingSession | null;
+  /** Pregão regular de Nova York (NYSE/Nasdaq). */
+  usSession: TradingSession | null;
   index: Quote;
   stocks: Quote[];
+  /** Ações americanas (Big Techs). */
+  us: Quote[];
+  /** ETFs globais listados nos EUA. */
+  etfs: Quote[];
+  /** S&P 500 e Nasdaq Composite. */
+  global: Quote[];
+  /** Dólar comercial (USD/BRL). */
+  fx: Quote;
   macro: MacroIndicator[];
   macroSource: "bcb" | "referencia";
   notice?: string;

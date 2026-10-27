@@ -7,6 +7,7 @@ import { fmt } from "@/lib/format";
 import { TABS, type TabId } from "@/lib/tabs";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { Icon } from "@/components/ui/Icon";
 import { TickDot } from "@/components/ui/LivePrice";
 
 /** Status do pregão e horário da última negociação recebida. */
@@ -29,11 +30,12 @@ function MarketStatus() {
 interface AppHeaderProps {
   active: TabId;
   onChange: (tab: TabId) => void;
+  onOpenBriefing: () => void;
 }
 
-export function AppHeader({ active, onChange }: AppHeaderProps) {
+export function AppHeader({ active, onChange, onOpenBriefing }: AppHeaderProps) {
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-bg/85 pt-[var(--safe-top)] backdrop-blur-md">
+    <header className="border-b border-line bg-bg/85 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-6 px-4 sm:h-16 sm:px-6 lg:px-8">
         <div className="flex min-w-0 items-center gap-2.5">
           <span className="inline-flex size-8 items-center justify-center rounded-lg bg-accent text-sm font-bold text-white dark:text-slate-900" aria-hidden>
@@ -74,8 +76,17 @@ export function AppHeader({ active, onChange }: AppHeaderProps) {
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-3 sm:gap-4">
+        <div className="ml-auto flex items-center gap-2 sm:gap-4">
           <MarketStatus />
+          <button
+            type="button"
+            onClick={onOpenBriefing}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2 py-1.5 text-xs font-medium text-muted transition-colors hover:text-fg sm:px-2.5"
+            aria-label="Abrir o resumo do dia"
+          >
+            <Icon name="sparkles" className="size-4 text-accent" />
+            <span className="hidden sm:inline">Resumo do dia</span>
+          </button>
           <ThemeToggle />
         </div>
       </div>

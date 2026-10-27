@@ -98,4 +98,4 @@ App Android nativo para tablet, em Jetpack Compose, com cotações em tempo real
 
 **Link: https://matoseb-stack.github.io/rotina/investimentos/**
 
-Versão web em Next.js + Tailwind com cotações e gráficos reais da B3 (Yahoo Finance), indicadores do Banco Central, notícias da Folha de S.Paulo e tema claro/escuro. Veja [`web-investimentos/`](web-investimentos/README.md).
+Versão web em Next.js + Tailwind com cotações e gráficos reais da B3 e dos EUA (ações e ETFs), dólar, indicadores do Banco Central, central de notícias com 10 veículos, faixa de última hora e resumo do dia, em tema claro ou escuro. Veja [`web-investimentos/`](web-investimentos/README.md).

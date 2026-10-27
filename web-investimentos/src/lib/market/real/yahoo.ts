@@ -2,13 +2,18 @@ import "server-only";
 
 /**
  * Cliente mínimo da API pública de gráficos do Yahoo Finance (v8/chart).
- * Ações da B3 usam o sufixo ".SA" e o Ibovespa é "^BVSP". Cotações da B3
- * no Yahoo têm atraso de até ~15 minutos.
+ * Ações da B3 usam o sufixo ".SA"; índices e câmbio têm símbolos próprios
+ * ("^BVSP", "^GSPC", "BRL=X"). Cotações da B3 no Yahoo têm atraso de até ~15 min.
  */
 const HOSTS = ["https://query1.finance.yahoo.com", "https://query2.finance.yahoo.com"];
 const USER_AGENT = "Mozilla/5.0 (compatible; PainelInvestimentos/1.0)";
 
-export const yahooSymbol = (symbol: string) => (symbol === "IBOV" ? "^BVSP" : `${symbol}.SA`);
+import type { StockSeed } from "../types";
+
+/** Símbolo do ativo no Yahoo: explícito na seed, ".SA" na B3 ou o próprio ticker nos EUA. */
+export const yahooSymbol = (seed: StockSeed) => seed.yahoo ?? (seed.market === "us" ? seed.symbol : `${seed.symbol}.SA`);
+
+const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export interface YahooMeta {
   regularMarketPrice: number;
@@ -45,11 +50,13 @@ interface RawChart {
   };
 }
 
-export async function fetchYahooChart(symbol: string, range: string, interval: string, revalidate: number): Promise<YahooChart> {
+export async function fetchYahooChart(seed: StockSeed, range: string, interval: string, revalidate: number): Promise<YahooChart> {
   let lastError: unknown;
-  for (const host of HOSTS) {
+  // query1 → query2 → espera 1,5 s e tenta query1 de novo (contorna 429 ocasional).
+  for (const [attempt, host] of [...HOSTS, HOSTS[0]].entries()) {
+    if (attempt === HOSTS.length) await pause(1_500);
     try {
-      const url = `${host}/v8/finance/chart/${encodeURIComponent(yahooSymbol(symbol))}?range=${range}&interval=${interval}&includePrePost=false`;
+      const url = `${host}/v8/finance/chart/${encodeURIComponent(yahooSymbol(seed))}?range=${range}&interval=${interval}&includePrePost=false`;
       const res = await fetch(url, {
         headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
         signal: AbortSignal.timeout(10_000),

@@ -16,12 +16,15 @@ function gaussian(random: () => number): number {
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
-function quoteFrom(seed: StockSeed, price: number, prev?: Quote): Quote {
+export function quoteFrom(seed: StockSeed, price: number, prev?: Quote): Quote {
   const change = price - seed.previousClose;
   return {
     symbol: seed.symbol,
     name: seed.name,
     sector: seed.sector,
+    market: seed.market ?? "b3",
+    currency: seed.currency ?? "BRL",
+    kind: seed.kind ?? "stock",
     about: seed.about,
     brandColor: seed.brandColor,
     previousClose: seed.previousClose,

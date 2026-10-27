@@ -64,3 +64,12 @@ export const chartFmt = {
 const decimal2 = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 export const decimal = (v: number) => decimal2.format(v);
 export const signedBrl = (v: number) => `${v >= 0 ? "+" : "−"}${currency.format(Math.abs(v))}`;
+
+const usd = new Intl.NumberFormat(LOCALE, { style: "currency", currency: "USD" });
+const indexPoints = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/** Preço no formato da moeda do ativo (R$ ou US$). */
+export const money = (v: number, c: "BRL" | "USD" = "BRL") => (c === "USD" ? usd.format(v) : currency.format(v));
+export const signedMoney = (v: number, c: "BRL" | "USD" = "BRL") => `${v >= 0 ? "+" : "−"}${money(Math.abs(v), c)}`;
+/** Índices americanos com duas casas ("7.732,60"). */
+export const indexValue = (v: number) => indexPoints.format(v);

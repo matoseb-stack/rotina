@@ -1,6 +1,6 @@
 import type { BondSeed, MacroIndicator, StockSeed } from "./types";
 
-export const INDEX_SEED: StockSeed = { symbol: "IBOV", name: "Ibovespa", sector: "Índice", previousClose: 176_608, volatility: 0.0005, about: "Principal índice da B3, formado pelas ações mais negociadas.", brandColor: "#1D4ED8" };
+export const INDEX_SEED: StockSeed = { symbol: "IBOV", name: "Ibovespa", sector: "Índice", kind: "index", yahoo: "^BVSP", previousClose: 176_608, volatility: 0.0005, about: "Principal índice da B3, formado pelas ações mais negociadas.", brandColor: "#1D4ED8" };
 
 export const STOCK_SEEDS: StockSeed[] = [
   { symbol: "PETR4", name: "Petrobras PN", sector: "Petróleo e Gás", previousClose: 53.88, volatility: 0.0016, about: "Maior empresa de energia do país: exploração e produção de petróleo e gás, refino e distribuição.", brandColor: "#008542" },
@@ -19,6 +19,45 @@ export const STOCK_SEEDS: StockSeed[] = [
   { symbol: "RDOR3", name: "Rede D'Or ON", sector: "Saúde", previousClose: 35.02, volatility: 0.0017, about: "Maior rede de hospitais privados do Brasil.", brandColor: "#003B71" },
   { symbol: "EMBJ3", name: "Embraer ON", sector: "Aeroespacial", previousClose: 96.2, volatility: 0.0021, about: "Fabricante de aeronaves comerciais, executivas e de defesa.", brandColor: "#1B3C87" },
 ];
+
+const us = { market: "us", currency: "USD" } as const;
+
+/** Big Techs americanas. */
+export const US_STOCK_SEEDS: StockSeed[] = [
+  { ...us, symbol: "AAPL", name: "Apple", sector: "Tecnologia", previousClose: 343.91, volatility: 0.001, brandColor: "#111827", newsQuery: '"Apple" AAPL', about: "Fabricante do iPhone, Mac e iPad, com receita crescente de serviços como App Store e iCloud." },
+  { ...us, symbol: "MSFT", name: "Microsoft", sector: "Tecnologia", previousClose: 480, volatility: 0.001, brandColor: "#00A4EF", newsQuery: '"Microsoft" MSFT', about: "Dona do Windows, Office e da nuvem Azure; uma das líderes em inteligência artificial corporativa." },
+  { ...us, symbol: "NVDA", name: "Nvidia", sector: "Semicondutores", previousClose: 216, volatility: 0.0018, brandColor: "#76B900", newsQuery: '"Nvidia" NVDA', about: "Projeta os chips gráficos (GPUs) que treinam e rodam a maior parte dos modelos de inteligência artificial." },
+  { ...us, symbol: "AMZN", name: "Amazon", sector: "Varejo e Nuvem", previousClose: 230, volatility: 0.0013, brandColor: "#FF9900", newsQuery: '"Amazon" AMZN', about: "Maior varejista online do mundo e dona da AWS, líder global em computação em nuvem." },
+  { ...us, symbol: "GOOGL", name: "Alphabet (Google)", sector: "Internet", previousClose: 250, volatility: 0.0013, brandColor: "#4285F4", newsQuery: '"Alphabet" OR "Google" GOOGL', about: "Controladora do Google, YouTube e Google Cloud; receita vem principalmente de publicidade digital." },
+  { ...us, symbol: "META", name: "Meta Platforms", sector: "Internet", previousClose: 700, volatility: 0.0015, brandColor: "#0866FF", newsQuery: '"Meta Platforms" OR "Meta" META stock', about: "Dona do Facebook, Instagram e WhatsApp; investe pesado em IA e realidade virtual." },
+  { ...us, symbol: "TSLA", name: "Tesla", sector: "Automotivo", previousClose: 430, volatility: 0.0025, brandColor: "#CC0000", newsQuery: '"Tesla" TSLA', about: "Fabricante de carros elétricos e baterias, com apostas em direção autônoma e robótica." },
+];
+
+const etf = { market: "us", currency: "USD", kind: "etf" } as const;
+
+/** ETFs globais de referência (o setor descreve o que o fundo acompanha). */
+export const ETF_SEEDS: StockSeed[] = [
+  { ...etf, symbol: "SPY", name: "SPDR S&P 500", sector: "S&P 500", previousClose: 765, volatility: 0.0006, brandColor: "#1F4E79", newsQuery: '"S&P 500" stocks', about: "O ETF mais negociado do mundo: replica as 500 maiores empresas americanas (S&P 500)." },
+  { ...etf, symbol: "QQQ", name: "Invesco QQQ", sector: "Nasdaq 100", previousClose: 620, volatility: 0.0008, brandColor: "#5B2C83", newsQuery: '"Nasdaq 100" OR "Nasdaq" tech stocks', about: "Replica o Nasdaq 100: as 100 maiores empresas não financeiras da Nasdaq, com peso forte em tecnologia." },
+  { ...etf, symbol: "DIA", name: "SPDR Dow Jones", sector: "Dow Jones", previousClose: 470, volatility: 0.0006, brandColor: "#1F4E79", newsQuery: '"Dow Jones" industrial average', about: "Replica o Dow Jones, índice de 30 grandes empresas tradicionais dos EUA." },
+  { ...etf, symbol: "VOO", name: "Vanguard S&P 500", sector: "S&P 500", previousClose: 705, volatility: 0.0006, brandColor: "#96151D", newsQuery: '"S&P 500" Vanguard OR stocks', about: "Também acompanha o S&P 500, com uma das menores taxas de administração do mercado." },
+  { ...etf, symbol: "IVV", name: "iShares Core S&P 500", sector: "S&P 500", previousClose: 768, volatility: 0.0006, brandColor: "#000000", newsQuery: '"S&P 500" iShares OR stocks', about: "ETF da BlackRock (iShares) que replica o S&P 500 a custo baixo." },
+  { ...etf, symbol: "BND", name: "Vanguard Total Bond", sector: "Renda fixa EUA", previousClose: 71.27, volatility: 0.0002, brandColor: "#96151D", newsQuery: '"Treasury yields" OR "bond market"', about: "Carteira ampla de títulos de renda fixa dos EUA (Tesouro americano e crédito corporativo de grau de investimento)." },
+];
+
+/** Referências globais exibidas na faixa de mercado e no resumo do dia. */
+export const GLOBAL_INDEX_SEEDS: StockSeed[] = [
+  { ...us, kind: "index", symbol: "SPX", yahoo: "^GSPC", name: "S&P 500", sector: "Índice EUA", previousClose: 7676.77, volatility: 0.0005, brandColor: "#1D4ED8", about: "As 500 maiores empresas americanas." },
+  { ...us, kind: "index", symbol: "NASDAQ", yahoo: "^IXIC", name: "Nasdaq", sector: "Índice EUA", previousClose: 26169.38, volatility: 0.0007, brandColor: "#0F766E", about: "Bolsa de tecnologia dos EUA (índice Composite)." },
+];
+
+export const FX_SEED: StockSeed = {
+  symbol: "USDBRL", yahoo: "BRL=X", name: "Dólar comercial", sector: "Câmbio", kind: "fx", currency: "BRL",
+  previousClose: 5.3767, volatility: 0.0003, brandColor: "#15803D", about: "Cotação do dólar americano em reais.",
+};
+
+/** Ativos com página de detalhe (gráfico + notícias). */
+export const DETAIL_SEEDS: StockSeed[] = [...STOCK_SEEDS, ...US_STOCK_SEEDS, ...ETF_SEEDS];
 
 export const BOND_SEEDS: BondSeed[] = [
   { id: "selic-2029", kind: "selic", title: "Tesouro Selic 2029", maturity: "01/03/2029", openRate: 0.0921, openUnitPrice: 16_874.32, duration: 0.05 },

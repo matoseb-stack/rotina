@@ -1,5 +1,5 @@
 import "server-only";
-import { decodeEntities, hash, resolveLink, squash, stripTags } from "./folha";
+import { decodeEntities, hash, resolveLink, squash, stripTags } from "./rss";
 import { COMPANY_SOURCES, companyMoreUrl } from "./company-sources";
 import type { AssetNewsFeed, AssetNewsItem } from "./types";
 
@@ -38,7 +38,8 @@ export function parseFolhaHeadlines(html: string): AssetNewsItem[] {
     if (!href || !title) continue;
     const standfirst = body.match(/c-headline__standfirst">([\s\S]*?)<\/p>/)?.[1] ?? "";
     const datetime = body.match(/datetime="([^"]+)"/)?.[1] ?? "";
-    const url = resolveLink(decodeEntities(href));
+    const url = resolveLink(decodeEntities(href), ["folha.uol.com.br", "folha.com.br"]);
+    if (!url) continue;
     items.push({
       id: hash(url),
       title,
@@ -79,7 +80,14 @@ async function fetchHtml(url: string): Promise<string> {
 export async function fetchCompanyNews(symbol: string, limit = 8): Promise<AssetNewsFeed> {
   const source = COMPANY_SOURCES[symbol];
   const moreUrl = companyMoreUrl(symbol);
-  const base = { symbol, moreUrl, fetchedAt: Date.now() };
+  const base = {
+    symbol,
+    moreUrl,
+    moreLabel: "Mais notícias na Folha",
+    sourceLabel: "Folha de S.Paulo",
+    lang: "pt" as const,
+    fetchedAt: Date.now(),
+  };
   if (!source) return { ...base, items: [], error: "Ativo sem fonte de notícias configurada." };
 
   try {

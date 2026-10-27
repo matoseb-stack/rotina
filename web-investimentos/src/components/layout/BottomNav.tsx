@@ -10,7 +10,7 @@ export function BottomNav({ active, onChange }: { active: TabId; onChange: (tab:
     <nav
       role="tablist"
       aria-label="Seções"
-      className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-line bg-surface/95 pb-[var(--safe-bottom)] backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-line bg-surface/95 pb-[var(--safe-bottom)] backdrop-blur-md md:hidden"
     >
       {TABS.map((tab) => {
         const selected = tab.id === active;
