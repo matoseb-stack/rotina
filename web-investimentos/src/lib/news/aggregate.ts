@@ -10,24 +10,8 @@ export const NEWS_REVALIDATE = 900;
 const PER_SOURCE = 25;
 const MAX_AGE_MS = 4 * 86_400_000;
 
-/** Lê os feeds oficiais do veículo; sem sucesso, tenta a busca do Google News (site:...). */
-async function fetchSource(source: NewsSourceDef): Promise<NewsItem[]> {
-  let raw: RawFeedItem[] = [];
-  let via: string | undefined;
-  for (const url of source.feeds) {
-    try {
-      raw.push(...(await fetchFeed(url, NEWS_REVALIDATE)));
-    } catch (error) {
-      console.warn(`[news] ${source.id}:`, error instanceof Error ? error.message : error);
-    }
-  }
-  if (raw.length === 0 && source.googleNews) {
-    raw = (await fetchFeed(source.googleNews, NEWS_REVALIDATE)).filter(
-      (it) => !it.sourceName || it.sourceName.toLowerCase().includes(source.name.toLowerCase()),
-    );
-    via = "Google News";
-  }
-
+/** Converte itens crus do feed em notícias (link validado, sem itens velhos). */
+function toItems(source: NewsSourceDef, raw: RawFeedItem[], via?: string): NewsItem[] {
   const now = Date.now();
   const items: NewsItem[] = [];
   for (const it of raw) {
@@ -55,6 +39,27 @@ async function fetchSource(source: NewsSourceDef): Promise<NewsItem[]> {
     });
   }
   return items.sort((a, b) => b.publishedAt - a.publishedAt).slice(0, PER_SOURCE);
+}
+
+/**
+ * Lê os feeds oficiais do veículo. Se não sobrar nenhuma notícia recente
+ * (feed bloqueado, vazio ou desatualizado), tenta a busca do Google News (site:...).
+ */
+async function fetchSource(source: NewsSourceDef): Promise<NewsItem[]> {
+  const raw: RawFeedItem[] = [];
+  for (const url of source.feeds) {
+    try {
+      raw.push(...(await fetchFeed(url, NEWS_REVALIDATE)));
+    } catch (error) {
+      console.warn(`[news] ${source.id}:`, error instanceof Error ? error.message : error);
+    }
+  }
+  const items = toItems(source, raw);
+  if (items.length > 0 || !source.googleNews) return items;
+  const fallback = (await fetchFeed(source.googleNews, NEWS_REVALIDATE)).filter(
+    (it) => !it.sourceName || it.sourceName.toLowerCase().includes(source.name.toLowerCase()),
+  );
+  return toItems(source, fallback, "Google News");
 }
 
 const titleKey = (title: string) => title.toLowerCase().replace(/[^a-z0-9à-ú]+/g, " ").trim();
