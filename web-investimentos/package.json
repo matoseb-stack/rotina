@@ -1,18 +1,21 @@
 {
-  "name": "web-investimentos",
+  "name": "painel-investimentos",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:static": "STATIC_EXPORT=1 next build"
   },
   "dependencies": {
     "framer-motion": "12.43.0",
     "next": "16.3.8",
     "react": "19.2.9",
     "react-dom": "19.2.9",
+    "react-is": "19.2.9",
+    "recharts": "3.10.1",
     "server-only": "0.0.1"
   },
   "devDependencies": {

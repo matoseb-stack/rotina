@@ -1,26 +1,24 @@
 import type { BondSeed, MacroIndicator, StockSeed } from "./types";
 
-export const INDEX_SEED: StockSeed = { symbol: "IBOV", name: "Ibovespa", sector: "Índice", previousClose: 128_450, volatility: 0.0005 };
+export const INDEX_SEED: StockSeed = { symbol: "IBOV", name: "Ibovespa", sector: "Índice", previousClose: 128_450, volatility: 0.0005, about: "Principal índice da B3, formado pelas ações mais negociadas.", brandColor: "#1D4ED8" };
 
 export const STOCK_SEEDS: StockSeed[] = [
-  { symbol: "PETR4", name: "Petrobras PN", sector: "Petróleo e Gás", previousClose: 37.85, volatility: 0.0016 },
-  { symbol: "VALE3", name: "Vale ON", sector: "Mineração", previousClose: 61.2, volatility: 0.0015 },
-  { symbol: "ITUB4", name: "Itaú Unibanco PN", sector: "Bancos", previousClose: 35.4, volatility: 0.0011 },
-  { symbol: "WEGE3", name: "WEG ON", sector: "Bens Industriais", previousClose: 52.3, volatility: 0.0013 },
-  { symbol: "BBAS3", name: "Banco do Brasil ON", sector: "Bancos", previousClose: 27.9, volatility: 0.0013 },
-  { symbol: "BBDC4", name: "Bradesco PN", sector: "Bancos", previousClose: 14.85, volatility: 0.0015 },
-  { symbol: "ABEV3", name: "Ambev ON", sector: "Bebidas", previousClose: 13.4, volatility: 0.001 },
-  { symbol: "B3SA3", name: "B3 ON", sector: "Serviços Financeiros", previousClose: 12.95, volatility: 0.0016 },
-  { symbol: "RENT3", name: "Localiza ON", sector: "Aluguel de Carros", previousClose: 41.6, volatility: 0.002 },
-  { symbol: "SUZB3", name: "Suzano ON", sector: "Papel e Celulose", previousClose: 56.1, volatility: 0.0014 },
-  { symbol: "PRIO3", name: "PRIO ON", sector: "Petróleo e Gás", previousClose: 43.2, volatility: 0.0022 },
-  { symbol: "MGLU3", name: "Magazine Luiza ON", sector: "Varejo", previousClose: 9.85, volatility: 0.0032 },
-  { symbol: "ELET3", name: "Eletrobras ON", sector: "Energia Elétrica", previousClose: 42.7, volatility: 0.0015 },
-  { symbol: "RDOR3", name: "Rede D'Or ON", sector: "Saúde", previousClose: 30.15, volatility: 0.0017 },
-  { symbol: "EMBR3", name: "Embraer ON", sector: "Aeroespacial", previousClose: 68.4, volatility: 0.0021 },
+  { symbol: "PETR4", name: "Petrobras PN", sector: "Petróleo e Gás", previousClose: 37.85, volatility: 0.0016, about: "Maior empresa de energia do país: exploração e produção de petróleo e gás, refino e distribuição.", brandColor: "#008542" },
+  { symbol: "VALE3", name: "Vale ON", sector: "Mineração", previousClose: 61.2, volatility: 0.0015, about: "Uma das maiores mineradoras do mundo, líder na produção de minério de ferro e níquel.", brandColor: "#007E7A" },
+  { symbol: "ITUB4", name: "Itaú Unibanco PN", sector: "Bancos", previousClose: 35.4, volatility: 0.0011, about: "Maior banco privado da América Latina, com atuação em varejo, atacado e gestão de investimentos.", brandColor: "#EC7000" },
+  { symbol: "WEGE3", name: "WEG ON", sector: "Bens Industriais", previousClose: 52.3, volatility: 0.0013, about: "Fabricante global de motores elétricos, equipamentos de energia e automação industrial.", brandColor: "#00579D" },
+  { symbol: "BBAS3", name: "Banco do Brasil ON", sector: "Bancos", previousClose: 27.9, volatility: 0.0013, about: "Banco de economia mista, referência em crédito agrícola e serviços para o setor público.", brandColor: "#465EFF" },
+  { symbol: "BBDC4", name: "Bradesco PN", sector: "Bancos", previousClose: 14.85, volatility: 0.0015, about: "Um dos maiores bancos privados do Brasil, com forte presença em seguros e varejo.", brandColor: "#CC092F" },
+  { symbol: "ABEV3", name: "Ambev ON", sector: "Bebidas", previousClose: 13.4, volatility: 0.001, about: "Maior cervejaria da América Latina, dona de marcas como Brahma, Skol e Antarctica.", brandColor: "#1A3A6E" },
+  { symbol: "B3SA3", name: "B3 ON", sector: "Serviços Financeiros", previousClose: 12.95, volatility: 0.0016, about: "Bolsa de valores do Brasil: opera a negociação, compensação e custódia de ativos.", brandColor: "#00A6A6" },
+  { symbol: "RENT3", name: "Localiza ON", sector: "Aluguel de Carros", previousClose: 41.6, volatility: 0.002, about: "Maior locadora de veículos e gestora de frotas da América Latina.", brandColor: "#00A859" },
+  { symbol: "SUZB3", name: "Suzano ON", sector: "Papel e Celulose", previousClose: 56.1, volatility: 0.0014, about: "Maior produtora mundial de celulose de eucalipto, com papéis para diversos usos.", brandColor: "#4B8C3E" },
+  { symbol: "PRIO3", name: "PRIO ON", sector: "Petróleo e Gás", previousClose: 43.2, volatility: 0.0022, about: "Petroleira independente focada na revitalização de campos maduros de petróleo.", brandColor: "#F58220" },
+  { symbol: "MGLU3", name: "Magazine Luiza ON", sector: "Varejo", previousClose: 9.85, volatility: 0.0032, about: "Varejista multicanal com lojas físicas, e-commerce e marketplace.", brandColor: "#0086FF" },
+  { symbol: "ELET3", name: "Eletrobras ON", sector: "Energia Elétrica", previousClose: 42.7, volatility: 0.0015, about: "Maior empresa de geração e transmissão de energia elétrica da América Latina.", brandColor: "#00A3E0" },
+  { symbol: "RDOR3", name: "Rede D'Or ON", sector: "Saúde", previousClose: 30.15, volatility: 0.0017, about: "Maior rede de hospitais privados do Brasil.", brandColor: "#003B71" },
+  { symbol: "EMBR3", name: "Embraer ON", sector: "Aeroespacial", previousClose: 68.4, volatility: 0.0021, about: "Fabricante de aeronaves comerciais, executivas e de defesa.", brandColor: "#1B3C87" },
 ];
-
-export const BLUE_CHIPS = ["PETR4", "VALE3", "ITUB4", "WEGE3"];
 
 export const BOND_SEEDS: BondSeed[] = [
   { id: "selic-2029", kind: "selic", title: "Tesouro Selic 2029", maturity: "01/03/2029", openRate: 0.0921, openUnitPrice: 16_874.32, duration: 0.05 },

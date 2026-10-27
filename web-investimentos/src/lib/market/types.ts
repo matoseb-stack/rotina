@@ -5,6 +5,10 @@ export interface StockSeed {
   previousClose: number;
   /** Desvio-padrão do retorno a cada tick (1 s). */
   volatility: number;
+  /** Descrição curta e didática da empresa. */
+  about: string;
+  /** Cor usada no monograma quando o logo não carrega. */
+  brandColor: string;
 }
 
 export type BondKind = "selic" | "ipca" | "prefixado";
@@ -25,7 +29,10 @@ export interface Quote {
   symbol: string;
   name: string;
   sector: string;
+  about: string;
+  brandColor: string;
   previousClose: number;
+  open: number;
   price: number;
   dayLow: number;
   dayHigh: number;
@@ -58,7 +65,6 @@ export interface MarketSnapshot {
   updatedAt: number;
   index: Quote;
   stocks: Quote[];
-  blueChips: Quote[];
   bonds: Bond[];
   macro: MacroIndicator[];
 }

@@ -1,115 +1,172 @@
-# Neon Invest · Web (Next.js PWA)
+# Painel de Investimentos · Web
 
-Painel de investimentos em tempo real no tema **Dark Neon Extravagant**, a
-evolução web do app Android em [`../android-investimentos`](../android-investimentos).
-Roda no navegador de laptop, PC, tablet e iPhone, e pode ser instalado como PWA.
+Painel de investimentos em tempo real com visual **clean e institucional**,
+temas **claro e escuro**, e notícias da **Folha de S.Paulo**. Funciona no
+navegador de qualquer laptop, PC ou celular (iPhone/Android) e pode ser
+instalado como app (PWA).
 
-![Intelligence Wire no desktop](docs/desktop-news.jpg)
+![Ações, tema claro](docs/acoes-claro.jpg)
 
-| iPhone | Tablet |
+| Deep-dive da ação | Tema escuro |
 |---|---|
-| ![iPhone](docs/iphone.jpg) | ![Tablet](docs/tablet.jpg) |
+| ![Modal da ação](docs/modal-acao.jpg) | ![Ações, tema escuro](docs/acoes-escuro.jpg) |
 
-## Rodando
+![iPhone](docs/iphone.jpg)
+
+> **Dados:** cotações, taxas e indicadores são **simulados** (atualizados a cada
+> 1 s). As **notícias são reais**: manchetes e links da Folha de S.Paulo.
+
+---
+
+## 🚀 Colocar no ar e ganhar um link público
+
+Escolha **uma** das opções. As duas geram um endereço `https://...` que abre em
+qualquer navegador, inclusive no celular.
+
+### Opção A: Vercel (recomendada, ~3 minutos)
+
+As notícias se atualizam sozinhas a cada 15 minutos, sem precisar de rebuild.
+
+1. Acesse **https://vercel.com** e entre com sua conta do **GitHub**.
+2. Clique em **Add New… → Project** e escolha o repositório **`rotina`**
+   (se não aparecer, clique em *Adjust GitHub App Permissions* e libere o repositório).
+3. Em **Root Directory**, clique em *Edit* e selecione **`web-investimentos`**.
+   O *Framework Preset* deve ser detectado como **Next.js**. Não mude mais nada.
+4. Clique em **Deploy**. Em ~1 minuto aparece o link, algo como
+   `https://rotina-xxxx.vercel.app`.
+5. Pronto. Cada `git push` na branch principal publica uma nova versão
+   automaticamente. Outras branches ganham links de *preview*.
+
+### Opção B: GitHub Pages (grátis, no próprio repositório)
+
+O workflow `.github/workflows/pages.yml` já está pronto. Ele publica o app
+"Rotina" na raiz e este painel em **`/investimentos`**, e republica a cada hora
+para trazer notícias novas.
+
+1. Faça o merge desta branch na **`main`** (ou rode o workflow manualmente,
+   passo 3).
+2. No GitHub, abra **Settings → Pages** e, em *Build and deployment*, deixe
+   **Source: Deploy from a branch** com a branch **`gh-pages`** / pasta **`/ (root)`**.
+3. Em **Actions → Publicar no GitHub Pages**, clique em **Run workflow**
+   (pode escolher a branch) e espere ficar verde (~2 min).
+4. Acesse: **`https://<seu-usuario>.github.io/rotina/investimentos/`**
+   (ex.: `https://matoseb-stack.github.io/rotina/investimentos/`).
+
+> No GitHub Pages as notícias são gravadas em arquivos estáticos a cada
+> publicação. O agendamento de hora em hora mantém tudo atualizado. O GitHub
+> pausa agendamentos em repositórios sem atividade há 60 dias; nesse caso, é
+> só rodar o workflow de novo.
+
+### Instalar como app no celular
+
+- **iPhone (Safari):** abra o link → botão **Compartilhar** → **Adicionar à Tela de Início**.
+- **Android (Chrome):** abra o link → menu **⋮** → **Instalar app**.
+
+---
+
+## Rodando localmente
 
 ```bash
+cd web-investimentos
 npm install
-npm run dev          # http://localhost:3000
-npm run build && npm start   # produção (o service worker só registra aqui)
+npm run dev                 # http://localhost:3000
+npm run build && npm start  # produção (servidor Next, igual à Vercel)
+npm run build:static        # export estático em ./out (igual ao GitHub Pages)
 ```
 
-Para testar no iPhone na mesma rede: `npm run build && npx next start -H 0.0.0.0`
-e abra `http://<ip-do-computador>:3000` no Safari. Para instalar como app,
-abra a página pelo Safari e toque em Compartilhar → Adicionar à Tela de Início.
-Isso exige HTTPS (Vercel, por exemplo) ou localhost.
+Para testar no celular na mesma rede Wi-Fi: `npx next start -H 0.0.0.0` e abra
+`http://<ip-do-computador>:3000`.
 
-Stack: Next.js 16 (App Router) · React 19 · Tailwind CSS 4 · framer-motion 12 · TypeScript.
+Stack: Next.js 16 (App Router) · React 19 · Tailwind CSS 4 · Recharts 3 ·
+framer-motion · TypeScript.
 
-## Módulos
+---
 
-| Aba | Conteúdo |
+## O que tem no painel
+
+### Ações (B3)
+- Resumo do dia: **Ibovespa** com a curva do pregão e as **3 maiores altas e baixas**.
+- **Grid de cards** das 15 principais ações (2 colunas no celular, 3 no tablet,
+  4 no desktop), ordenável por A–Z, maiores altas ou maiores baixas.
+- Cada card mostra logo, ticker, preço, variação, uma faixa verde/vermelha
+  discreta e um ponto que **pulsa a cada atualização (1 s)**.
+- **Modal deep-dive** ao clicar:
+  1. **Cabeçalho:** logo, nome, ticker, preço e variação ao vivo.
+  2. **Gráfico (Recharts)** com períodos `1D · 5D · 1M · 6M · 1Y · ALL`,
+     tooltip, linha do fechamento anterior e variação no período.
+  3. **Notícias do ativo (Folha de S.Paulo)** à direita, com título, resumo,
+     horário e link direto para a matéria (`target="_blank"`).
+  4. Abertura, mínima, máxima, fechamento anterior e um "Sobre a empresa".
+
+### Tesouro Direto
+Indicadores no topo (Selic Meta, CDI, IPCA 12m) e uma coluna por tipo:
+**Selic**, **IPCA+** e **Prefixado**. Cada coluna explica o título em uma frase
+e mostra taxa, variação em bps, preço unitário e investimento mínimo.
+
+### Notícias
+Manchetes de Mercado da Folha com filtros **Macro · Câmbio · Tesouro · Ações**.
+Cada item abre a matéria original na Folha.
+
+---
+
+## Como funciona
+
+### Temas claro/escuro
+- Cores definidas como variáveis CSS em `src/app/globals.css` (`:root` = claro,
+  `[data-theme="dark"]` = escuro) e expostas ao Tailwind via `@theme inline`
+  (`bg-surface`, `text-muted`, `text-up`, `text-down`...).
+- Um script inline no `<head>` aplica o tema salvo (ou o do sistema) **antes da
+  primeira pintura**, sem "piscar" o tema errado. O botão ☀️/🌙 no topo alterna
+  e salva a escolha.
+
+### Tempo real
+- `src/lib/market/store.ts` roda o loop de 1 s fora do React. Componentes leem
+  com `useMarketData(seletor)` (`useSyncExternalStore`), então só quem usa o
+  dado re-renderiza. O loop pausa quando a aba fica oculta.
+- O gráfico usa uma série histórica simulada **determinística por ativo**
+  (`src/lib/market/history.ts`). O desenho é estável e o último ponto segue o
+  preço ao vivo.
+
+### Notícias da Folha
+| Arquivo gerado | Origem |
 |---|---|
-| **B3 / Ações** | Ibovespa + PETR4, VALE3, ITUB4, WEGE3: preço, variação, mínima/máxima, mini gráfico, tick piscando verde/vermelho |
-| **Top Gainers/Losers** | Ranking de altas e baixas de 15 ações com reordenação animada (`layout`) e barra de amplitude |
-| **Tesouro Direto** | Selic, IPCA+, Prefixado: taxa, variação em bps, PU, investimento mínimo + Selic Meta / CDI / IPCA 12m |
-| **Intelligence Wire** | Manchetes **reais** do RSS da Folha de S.Paulo (Mercado), filtros, leitor imersivo e link direto para a matéria |
+| `/api/news.json` | RSS de Mercado da Folha (`feeds.folha.uol.com.br/mercado/rss091.xml`) |
+| `/api/asset-news/<TICKER>.json` | Página de tópico da empresa na Folha (ex.: `/folha-topicos/petrobras/`) ou a busca da Folha, filtrada para seções de negócios que citam a empresa |
 
-> Cotações, taxas e indicadores são **simulados**. As notícias são reais quando
-> o servidor alcança o RSS da Folha; senão, o painel mostra manchetes simuladas
-> com o selo "SIMULADO" (nunca atribuídas à Folha).
+- Os dois são *Route Handlers* estáticos: viram arquivos JSON no build
+  (GitHub Pages) e são revalidados a cada 15 min no servidor (Vercel).
+- Só links de domínios da Folha são aceitos. Se o RSS geral falhar, a aba de
+  notícias mostra manchetes **simuladas** com o selo "Simulado", nunca
+  atribuídas à Folha. As notícias por ativo não têm conteúdo simulado: sem
+  resultado, o modal oferece o link para a página da empresa na Folha.
+- Logos das empresas: ícones públicos da [brapi.dev](https://brapi.dev),
+  com monograma na cor da marca como reserva.
 
-## Estrutura
+### Estrutura
 
 ```
 src/
 ├── app/
-│   ├── layout.tsx            # fontes, metadata PWA/iOS, viewport-fit=cover
-│   ├── page.tsx
-│   ├── globals.css           # design system: tokens neon, .glass, .neon-pill, ticks
-│   ├── manifest.ts           # Web App Manifest
-│   └── api/news/route.ts     # lê o RSS da Folha no servidor (cache de 2 min)
-├── hooks/
-│   ├── useMarketData.ts      # useSyncExternalStore + seletores
-│   ├── useNewsFeed.ts        # polling de /api/news, marca manchetes novas
-│   └── useNow.ts
-├── lib/
-│   ├── market/               # seeds, simulador (passeio aleatório), store de 1 s
-│   ├── news/
-│   │   ├── types.ts          # NewsItem, filtros, cores por categoria
-│   │   ├── folha.ts          # parser do RSS (ISO-8859-1, redirecionador, entidades)
-│   │   ├── classify.ts       # categoria, filtro e impacto por palavras-chave
-│   │   └── mock.ts           # fallback simulado
-│   ├── tabs.ts · format.ts · utils.ts
-└── components/
-    ├── dashboard/            # Dashboard (layout adaptativo), NeonTabs, Header
-    ├── stocks/ · movers/ · treasury/
-    ├── news/                 # NewsWire, NewsFilters, NewsCard, NewsReaderModal, NewsMeta
-    ├── ui/                   # GlassCard, Sparkline, PriceTicker, ChangeChip, LiveBadge, Icon
-    └── pwa/ServiceWorkerRegister.tsx
-public/
-├── sw.js                     # app shell offline + cache de assets
-└── icons/
+│   ├── layout.tsx                    # fonte, PWA, script de tema
+│   ├── globals.css                   # design system (tokens claro/escuro)
+│   ├── manifest.ts
+│   └── api/
+│       ├── news.json/route.ts        # notícias gerais (Folha · Mercado)
+│       └── asset-news/[file]/route.ts# notícias por ativo
+├── components/
+│   ├── layout/      AppHeader · BottomNav
+│   ├── theme/       ThemeToggle
+│   ├── stocks/      StocksPanel · StockCard · StockModal · StockChart · AssetNews
+│   ├── treasury/    TreasuryPanel
+│   ├── news/        NewsPanel
+│   └── ui/          StockLogo · LivePrice/TickDot · ChangeChip · Sparkline · Icon
+├── hooks/           useMarketData · useNewsFeed · useAssetNews · useNow
+└── lib/
+    ├── market/      seeds · simulator · store · history
+    ├── news/        folha · companies · company-sources · classify · mock · types
+    ├── theme.ts · base-path.ts · format.ts · tabs.ts
 ```
 
-## Tempo real sem travar a página
-
-- `lib/market/store.ts` roda o loop de 1 s **fora do React**. Componentes leem
-  via `useMarketData(selector)` (`useSyncExternalStore`), e só quem está
-  inscrito re-renderiza. Abas, títulos e layout não re-renderizam a cada tick.
-- O loop só existe enquanto há inscritos e **pausa quando a aba fica oculta**,
-  o que economiza bateria no iPhone.
-- Cada tick é um snapshot imutável. Cards são `memo` e recebem só a própria cotação.
-- O piscar dos preços é uma animação CSS de `transform`/`opacity` reiniciada
-  por `key`, rodando na GPU sem JavaScript por frame.
-- O estado inicial é determinístico (igual no servidor e no cliente). A
-  aleatoriedade só começa no primeiro tick, então não há erro de hidratação.
-
-## Intelligence Wire (notícias)
-
-- `GET /api/news` busca `feeds.folha.uol.com.br/mercado/rss091.xml` no servidor
-  (o RSS não tem CORS) e decodifica ISO-8859-1. Também extrai o link real de
-  dentro do redirecionador e aceita apenas domínios da Folha.
-- Cada manchete recebe **categoria** (Copom, Câmbio, Política Fiscal, Inflação,
-  Tesouro, Empresas, Commodities, Economia), **filtro** (Macro, Ações, Câmbio,
-  Tesouro) e um **indicador de impacto**. Tudo é feito por palavras-chave, é
-  heurístico.
-- Card: horário (BRT), tempo relativo, tag, impacto, título, resumo de 1 linha,
-  selo da fonte e botão "Folha ↗" (`target="_blank" rel="noopener noreferrer"`).
-- Leitor: modal no desktop e *bottom sheet* arrastável no iPhone. Esc fecha,
-  ← → navega, o foco fica preso no diálogo e o scroll da página trava. Mostra
-  apenas o trecho que a própria Folha publica no RSS, com o botão para a
-  matéria completa.
-- Atualiza a cada 90 s (só com a aba visível) e destaca manchetes novas com "NOVO".
-- Sem servidor (hospedagem estática) ou sem acesso ao RSS, usa o feed simulado
-  e avisa na tela.
-
-## Layout responsivo
-
-- **≥ 1024 px:** abas laterais + grid.
-- **768–1023 px (tablet):** abas no topo + grid de 2 colunas.
-- **< 768 px (iPhone):** cards empilhados + dock inferior respeitando a
-  *safe area*. Os filtros rolam na horizontal sem gerar overflow na página.
-
-> Em ambientes que exigem proxy HTTP para sair à internet, rode o servidor com
-> `NODE_USE_ENV_PROXY=1` (Node 22+), senão o `fetch` do Node ignora o proxy e o
-> RSS cai no modo simulado.
+> Em ambientes que exigem proxy HTTP para sair à internet, rode o build com
+> `NODE_USE_ENV_PROXY=1` (Node 22+). Sem isso, o `fetch` do Node ignora o
+> proxy e as notícias caem no modo simulado.

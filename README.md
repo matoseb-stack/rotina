@@ -96,4 +96,4 @@ App Android nativo para tablet, em Jetpack Compose, com cotações em tempo real
 
 ## Painel de Investimentos (Web / PWA)
 
-Versão web em Next.js + Tailwind, responsiva e instalável como PWA, com notícias reais da Folha (Mercado). Veja [`web-investimentos/`](web-investimentos/README.md).
+Versão web em Next.js + Tailwind, com tema claro/escuro, gráficos por ativo e notícias da Folha de S.Paulo. Publicada pelo mesmo workflow do GitHub Pages em `/investimentos`. Veja [`web-investimentos/`](web-investimentos/README.md) para colocar no ar (Vercel ou GitHub Pages).

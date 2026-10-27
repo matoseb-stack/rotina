@@ -1,4 +1,4 @@
-import { BLUE_CHIPS, BOND_SEEDS, INDEX_SEED, MACRO, STOCK_SEEDS } from "./seeds";
+import { BOND_SEEDS, INDEX_SEED, MACRO, STOCK_SEEDS } from "./seeds";
 import type { Bond, BondSeed, MarketSnapshot, Quote, StockSeed } from "./types";
 
 const HISTORY_SIZE = 60;
@@ -22,7 +22,10 @@ function quoteFrom(seed: StockSeed, price: number, prev?: Quote): Quote {
     symbol: seed.symbol,
     name: seed.name,
     sector: seed.sector,
+    about: seed.about,
+    brandColor: seed.brandColor,
     previousClose: seed.previousClose,
+    open: prev?.open ?? price,
     price,
     dayLow: Math.min(prev?.dayLow ?? price, price),
     dayHigh: Math.max(prev?.dayHigh ?? price, price),
@@ -71,7 +74,6 @@ export class MarketSimulator {
       updatedAt: 0,
       index: quoteFrom(INDEX_SEED, INDEX_SEED.previousClose),
       stocks,
-      blueChips: BLUE_CHIPS.map((sym) => stocks.find((q) => q.symbol === sym)!),
       bonds: BOND_SEEDS.map((b) => bondFrom(b, b.openRate)),
       macro: MACRO,
     };
@@ -105,7 +107,6 @@ export class MarketSimulator {
       updatedAt: now,
       index,
       stocks,
-      blueChips: BLUE_CHIPS.map((sym) => stocks.find((q) => q.symbol === sym)!),
       bonds,
       macro: prev.macro,
     };

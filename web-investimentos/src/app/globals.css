@@ -1,108 +1,118 @@
 @import "tailwindcss";
 
-@theme {
-  --color-ink: #050505;
-  --color-neon-lime: #c6ff00;
-  --color-neon-cyan: #00f0ff;
-  --color-neon-purple: #b026ff;
-  --color-neon-pink: #ff2bd6;
-  --color-neon-red: #ff3b6b;
+/* Tema controlado por data-theme no <html> (definido antes da pintura no layout). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", Menlo, monospace;
-
-  --animate-live-dot: live-dot 1.2s ease-in-out infinite;
-  --animate-fresh: fresh-flash 2.4s ease-out 1;
-}
-
-@keyframes live-dot {
-  50% { opacity: 0.25; transform: scale(0.8); }
-}
-
-@keyframes fresh-flash {
-  0% { box-shadow: 0 0 0 1px var(--accent, #ff2bd6), 0 0 28px -4px var(--accent, #ff2bd6); }
-  100% { box-shadow: 0 0 0 0 transparent; }
-}
-
+/* ---------- Tokens: claro (padrão) ---------- */
 :root {
-  color-scheme: dark;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text: #0f172a;
+  --muted: #475569;
+  --subtle: #94a3b8;
+  --accent: #1d4ed8;
+  --accent-soft: #eff6ff;
+  --up: #047857;
+  --up-soft: #ecfdf5;
+  --down: #b91c1c;
+  --down-soft: #fef2f2;
+  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.05);
+  --shadow: 0 1px 3px rgb(15 23 42 / 0.06), 0 1px 2px rgb(15 23 42 / 0.04);
+  --shadow-lg: 0 12px 32px -12px rgb(15 23 42 / 0.18), 0 2px 6px rgb(15 23 42 / 0.05);
+  --overlay: rgb(15 23 42 / 0.45);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+
+/* ---------- Tokens: escuro ---------- */
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --surface: #131c2e;
+  --surface-2: #1b2539;
+  --border: #233047;
+  --border-strong: #334155;
+  --text: #f1f5f9;
+  --muted: #a3b0c2;
+  --subtle: #64748b;
+  --accent: #60a5fa;
+  --accent-soft: rgb(96 165 250 / 0.12);
+  --up: #34d399;
+  --up-soft: rgb(52 211 153 / 0.12);
+  --down: #f87171;
+  --down-soft: rgb(248 113 113 / 0.12);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 16px 40px -12px rgb(0 0 0 / 0.6);
+  --overlay: rgb(2 6 23 / 0.7);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-fg: var(--text);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-up: var(--up);
+  --color-up-soft: var(--up-soft);
+  --color-down: var(--down);
+  --color-down-soft: var(--down-soft);
+  --shadow-card: var(--shadow);
+  --shadow-card-sm: var(--shadow-sm);
+  --shadow-pop: var(--shadow-lg);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 html {
-  background: #000;
+  background: var(--bg);
   -webkit-text-size-adjust: 100%;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
 body {
-  background: #000;
-  color: #f4f7fa;
+  background: var(--bg);
+  color: var(--text);
   /* clip (e não hidden) evita overflow horizontal sem quebrar position: sticky. */
   overflow-x: clip;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 button, a { touch-action: manipulation; }
 
 .tnum { font-variant-numeric: tabular-nums; }
 
-/* ---------- Glassmorphism escuro ---------- */
-.glass {
-  position: relative;
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.012) 60%);
-  border: 1px solid color-mix(in srgb, var(--accent, #ffffff) 14%, rgba(255, 255, 255, 0.07));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 20px 40px -24px rgba(0, 0, 0, 0.9);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  backdrop-filter: blur(18px) saturate(140%);
+/* Card base: superfície, borda fina e sombra suave. */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
 }
 
-.hairline { background: rgba(255, 255, 255, 0.07); height: 1px; }
+/* Realce discreto do preço a cada tick: só o fundo, que some em 0,5 s (o texto não muda de cor). */
+.tick-up { animation: tick-up 0.5s ease-out; }
+.tick-down { animation: tick-down 0.5s ease-out; }
+@keyframes tick-up { from { background-color: var(--up-soft); } }
+@keyframes tick-down { from { background-color: var(--down-soft); } }
 
-/* ---------- Abas neon: brilho pulsante que alterna limão/ciano/roxo ---------- */
-.neon-pill {
-  border: 1px solid var(--accent);
-  background: color-mix(in srgb, var(--accent) 11%, rgba(0, 0, 0, 0.55));
-  animation: neon-shuffle 4.8s ease-in-out infinite;
-}
+/* Pulso do indicador "ao vivo" a cada atualização. */
+.tick-dot { animation: tick-dot 1s ease-out; }
+@keyframes tick-dot { from { transform: scale(1.8); opacity: 0.35; } }
 
-@keyframes neon-shuffle {
-  0%, 100% {
-    box-shadow: 0 0 14px -2px color-mix(in srgb, var(--accent) 85%, transparent),
-      0 0 36px -8px color-mix(in srgb, #c6ff00 55%, transparent);
-  }
-  33% {
-    box-shadow: 0 0 24px 0 color-mix(in srgb, var(--accent) 95%, transparent),
-      0 0 44px -6px color-mix(in srgb, #00f0ff 55%, transparent);
-  }
-  66% {
-    box-shadow: 0 0 16px -2px color-mix(in srgb, var(--accent) 80%, transparent),
-      0 0 40px -6px color-mix(in srgb, #b026ff 60%, transparent);
-  }
-}
-
-.text-glow { text-shadow: 0 0 18px color-mix(in srgb, currentColor 55%, transparent); }
-
-/* ---------- Ticks de preço: entra deslizando e pisca verde/vermelho ---------- */
-.tick-up, .tick-down { display: inline-block; animation-duration: 0.9s; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
-.tick-up { animation-name: tick-up; }
-.tick-down { animation-name: tick-down; }
-
-@keyframes tick-up {
-  0% { transform: translateY(45%); opacity: 0.2; color: #c6ff00; text-shadow: 0 0 16px rgba(198, 255, 0, 0.8); }
-  30% { transform: translateY(0); opacity: 1; color: #c6ff00; }
-}
-@keyframes tick-down {
-  0% { transform: translateY(-45%); opacity: 0.2; color: #ff3b6b; text-shadow: 0 0 16px rgba(255, 59, 107, 0.8); }
-  30% { transform: translateY(0); opacity: 1; color: #ff3b6b; }
-}
-
-/* Scroll horizontal sem barra (filtros no iPhone). */
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
-  .neon-pill, .tick-up, .tick-down, .animate-live-dot, .animate-fresh { animation: none !important; }
+  .tick-up, .tick-down, .tick-dot { animation: none !important; }
+  body { transition: none; }
 }

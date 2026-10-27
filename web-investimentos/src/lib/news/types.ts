@@ -52,13 +52,32 @@ export const NEWS_FILTERS: { id: NewsFilter; label: string }[] = [
   { id: "tesouro", label: "Tesouro" },
 ];
 
+/** Tons sóbrios que funcionam nos dois temas (texto na cor, fundo com 10% de opacidade). */
 export const CATEGORY_COLORS: Record<NewsCategory, string> = {
-  Copom: "#B026FF",
-  "Câmbio": "#00F0FF",
-  "Política Fiscal": "#FF2BD6",
-  "Inflação": "#FF9F1C",
-  Tesouro: "#8B7CFF",
-  Empresas: "#C6FF00",
-  Commodities: "#FFE600",
-  Economia: "#7DD3FC",
+  Copom: "#7C3AED",
+  "Câmbio": "#0891B2",
+  "Política Fiscal": "#DB2777",
+  "Inflação": "#D97706",
+  Tesouro: "#4F46E5",
+  Empresas: "#059669",
+  Commodities: "#CA8A04",
+  Economia: "#64748B",
 };
+
+/** Manchete da Folha sobre um ativo específico (página de tópico ou busca). */
+export interface AssetNewsItem {
+  id: string;
+  title: string;
+  summary: string;
+  url: string;
+  publishedAt: number | null;
+}
+
+export interface AssetNewsFeed {
+  symbol: string;
+  items: AssetNewsItem[];
+  /** Página da Folha com mais notícias sobre a empresa. */
+  moreUrl: string;
+  fetchedAt: number;
+  error?: string;
+}

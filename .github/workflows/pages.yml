@@ -3,6 +3,9 @@ name: Publicar no GitHub Pages
 on:
   push:
     branches: [main, claude/rotina-inteligente-prototype-hlbdhu]
+  # Republica a cada hora para o Painel de Investimentos trazer notícias novas da Folha.
+  schedule:
+    - cron: "23 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -21,10 +24,22 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web-investimentos/package-lock.json
       - run: npm ci
       - run: npm run build
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
+      - name: Gerar o Painel de Investimentos (Next.js, export estático)
+        working-directory: web-investimentos
+        run: |
+          npm ci
+          npm run build:static
+        env:
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}/investimentos
+      - name: Colocar o painel em /investimentos
+        run: cp -r web-investimentos/out dist/investimentos
       - name: Enviar o site para a branch gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:

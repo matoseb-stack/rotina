@@ -1,82 +1,141 @@
 "use client";
 
-import { memo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useMarketData } from "@/hooks/useMarketData";
 import { fmt } from "@/lib/format";
-import { NEON, trendColor } from "@/lib/tabs";
+import { buildHistory } from "@/lib/market/history";
 import type { Quote } from "@/lib/market/types";
-import { GlassCard } from "@/components/ui/GlassCard";
+import { cn } from "@/lib/utils";
 import { ChangeChip } from "@/components/ui/ChangeChip";
-import { PriceTicker } from "@/components/ui/PriceTicker";
+import { LivePrice } from "@/components/ui/LivePrice";
 import { Sparkline } from "@/components/ui/Sparkline";
+import { StockLogo } from "@/components/ui/StockLogo";
+import { StockCard } from "./StockCard";
+import { StockModal } from "./StockModal";
+
+type SortKey = "ticker" | "alta" | "baixa";
+
+const SORTS: { id: SortKey; label: string }[] = [
+  { id: "ticker", label: "A–Z" },
+  { id: "alta", label: "Maiores altas" },
+  { id: "baixa", label: "Maiores baixas" },
+];
 
 export function StocksPanel() {
-  const index = useMarketData((s) => s.index);
-  const blueChips = useMarketData((s) => s.blueChips);
+  const stocks = useMarketData((s) => s.stocks);
+  const [sort, setSort] = useState<SortKey>("ticker");
+  const [openSymbol, setOpenSymbol] = useState<string | null>(null);
+  const open = useCallback((symbol: string) => setOpenSymbol(symbol), []);
+  const close = useCallback(() => setOpenSymbol(null), []);
+
+  const sorted = useMemo(() => {
+    const list = [...stocks];
+    if (sort === "ticker") list.sort((a, b) => a.symbol.localeCompare(b.symbol));
+    else if (sort === "alta") list.sort((a, b) => b.changePct - a.changePct);
+    else list.sort((a, b) => a.changePct - b.changePct);
+    return list;
+  }, [stocks, sort]);
+
   return (
-    <div className="grid gap-4 sm:gap-5 md:grid-cols-2">
-      <IndexBanner quote={index} />
-      {blueChips.map((q) => (
-        <StockCard key={q.symbol} quote={q} />
-      ))}
+    <div className="flex flex-col gap-6">
+      <MarketOverview stocks={stocks} onOpen={open} />
+
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-base font-semibold">Principais ações</h2>
+          <p className="text-sm text-muted">Toque em uma ação para ver o gráfico e as notícias.</p>
+        </div>
+        <div role="radiogroup" aria-label="Ordenar" className="inline-flex rounded-lg border border-line bg-surface-2 p-0.5 text-xs font-medium">
+          {SORTS.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              role="radio"
+              aria-checked={sort === s.id}
+              onClick={() => setSort(s.id)}
+              className={cn(
+                "rounded-md px-2.5 py-1.5 transition-colors",
+                sort === s.id ? "bg-surface text-fg shadow-card-sm" : "text-muted hover:text-fg",
+              )}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4">
+        {sorted.map((q) => (
+          <StockCard key={q.symbol} quote={q} onOpen={open} />
+        ))}
+      </div>
+
+      <StockModal symbol={openSymbol} onClose={close} />
     </div>
   );
 }
 
-const IndexBanner = memo(function IndexBanner({ quote }: { quote: Quote }) {
+/** Resumo do dia: Ibovespa + três maiores altas e baixas. */
+function MarketOverview({ stocks, onOpen }: { stocks: Quote[]; onOpen: (symbol: string) => void }) {
+  const index = useMarketData((s) => s.index);
+  const { gainers, losers, advancers } = useMemo(() => {
+    const byChange = [...stocks].sort((a, b) => b.changePct - a.changePct);
+    return {
+      gainers: byChange.slice(0, 3),
+      losers: byChange.slice(-3).reverse(),
+      advancers: stocks.filter((q) => q.changePct >= 0).length,
+    };
+  }, [stocks]);
+  const up = index.changePct >= 0;
+  // Curva do pregão de hoje (mesma série do gráfico 1D), terminando no valor ao vivo.
+  const intraday = useMemo(() => buildHistory(index, "1D", Date.now()).map((p) => p.price), [index]);
+
   return (
-    <GlassCard accent={NEON.lime} className="md:col-span-2">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <div className="min-w-0 flex-1">
-          <p className="font-mono text-[11px] tracking-[0.25em] text-zinc-400">IBOVESPA</p>
-          <div className="mt-2 flex flex-wrap items-center gap-3">
-            <PriceTicker value={quote.price} format={fmt.points} className="text-3xl font-semibold tracking-tight sm:text-4xl" />
-            <ChangeChip value={quote.changePct} />
+    <div className="grid gap-3 sm:gap-4 lg:grid-cols-3">
+      <div className="card p-4 sm:p-5">
+        <div className="flex items-center gap-2.5">
+          <StockLogo symbol="IBOV" name="Ibovespa" brandColor={index.brandColor} size={32} />
+          <div>
+            <p className="text-sm font-semibold">Ibovespa</p>
+            <p className="text-xs text-muted">Índice da B3</p>
           </div>
-          <p className="tnum mt-1 text-xs text-zinc-500">Fech. anterior {fmt.points(quote.previousClose)}</p>
         </div>
-        <Sparkline data={quote.history} color={trendColor(quote.changePct)} height={64} className="w-full sm:w-1/2" />
-      </div>
-    </GlassCard>
-  );
-});
-
-const StockCard = memo(function StockCard({ quote }: { quote: Quote }) {
-  const color = trendColor(quote.changePct);
-  return (
-    <GlassCard accent={NEON.lime}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="text-xl font-semibold">{quote.symbol}</h3>
-          <p className="truncate text-xs text-zinc-500">
-            {quote.name} · {quote.sector}
-          </p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <LivePrice value={index.price} format={fmt.points} className="text-2xl font-semibold tracking-tight" />
+          <ChangeChip value={index.changePct} size="md" />
         </div>
-        <ChangeChip value={quote.changePct} />
+        <Sparkline data={intraday} up={up} height={44} className="mt-3" />
+        <p className="mt-2 text-xs text-muted">
+          <span className="text-up">{advancers} em alta</span> · <span className="text-down">{stocks.length - advancers} em baixa</span> entre as ações acompanhadas
+        </p>
       </div>
-
-      <PriceTicker value={quote.price} format={fmt.brl} className="mt-5 text-4xl font-semibold tracking-tight" />
-      <p className="tnum text-xs text-zinc-500">Fech. anterior {fmt.brl(quote.previousClose)}</p>
-
-      <Sparkline data={quote.history} color={color} height={72} className="mt-4" />
-
-      <div className="hairline my-4" />
-      <dl className="grid grid-cols-3 gap-2 text-sm">
-        <Stat label="Mínima" value={fmt.brl(quote.dayLow)} />
-        <Stat label="Máxima" value={fmt.brl(quote.dayHigh)} />
-        <Stat label="Variação" value={fmt.brl(quote.change)} color={color} />
-      </dl>
-    </GlassCard>
+      <MoversCard title="Maiores altas" items={gainers} onOpen={onOpen} />
+      <MoversCard title="Maiores baixas" items={losers} onOpen={onOpen} />
+    </div>
   );
-});
+}
 
-export function Stat({ label, value, color }: { label: string; value: string; color?: string }) {
+function MoversCard({ title, items, onOpen }: { title: string; items: Quote[]; onOpen: (symbol: string) => void }) {
   return (
-    <div className="min-w-0">
-      <dt className="font-mono text-[10px] tracking-[0.2em] text-zinc-500 uppercase">{label}</dt>
-      <dd className="tnum mt-1 truncate text-zinc-300" style={color ? { color } : undefined}>
-        {value}
-      </dd>
+    <div className="card p-4 sm:p-5">
+      <p className="text-sm font-semibold">{title}</p>
+      <ul className="mt-2 divide-y divide-line">
+        {items.map((q) => (
+          <li key={q.symbol}>
+            <button type="button" onClick={() => onOpen(q.symbol)} className="flex w-full items-center gap-2.5 py-2.5 text-left">
+              <StockLogo symbol={q.symbol} name={q.name} brandColor={q.brandColor} size={28} />
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-medium">{q.symbol}</span>
+                <span className="block truncate text-xs text-muted">{q.name}</span>
+              </span>
+              <span className="text-right">
+                <span className="tnum block text-sm">{fmt.brl(q.price)}</span>
+                <ChangeChip value={q.changePct} />
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

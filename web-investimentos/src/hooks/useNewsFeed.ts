@@ -1,17 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { withBase } from "@/lib/base-path";
 import { buildMockFeed } from "@/lib/news/mock";
 import type { NewsFeed } from "@/lib/news/types";
 
 type Status = "loading" | "ready" | "refreshing";
 
 /**
- * Busca /api/news (que lê o RSS da Folha no servidor) e atualiza a cada `pollMs`.
- * Se a API não existir (ex.: hospedagem estática) cai no feed simulado local.
+ * Busca /api/news.json (RSS da Folha lido no servidor ou no build) e atualiza a
+ * cada `pollMs`. Se o arquivo não estiver acessível, cai no feed simulado local.
  * `freshIds` marca as manchetes que chegaram desde a última atualização.
  */
-export function useNewsFeed(pollMs = 90_000) {
+export function useNewsFeed(pollMs = 5 * 60_000) {
   const [feed, setFeed] = useState<NewsFeed | null>(null);
   const [status, setStatus] = useState<Status>("loading");
   const [freshIds, setFreshIds] = useState<ReadonlySet<string>>(new Set());
@@ -21,7 +22,7 @@ export function useNewsFeed(pollMs = 90_000) {
     setStatus((s) => (s === "loading" ? s : "refreshing"));
     let next: NewsFeed;
     try {
-      const res = await fetch("/api/news", { cache: "no-store" });
+      const res = await fetch(withBase("/api/news.json"), { cache: "no-store" });
       if (!res.ok) throw new Error(String(res.status));
       next = (await res.json()) as NewsFeed;
     } catch {

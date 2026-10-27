@@ -1,19 +1,19 @@
 "use client";
 
-import { memo } from "react";
 import { useMarketData } from "@/hooks/useMarketData";
 import { fmt } from "@/lib/format";
-import { NEON } from "@/lib/tabs";
 import type { Bond, BondKind } from "@/lib/market/types";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { PriceTicker } from "@/components/ui/PriceTicker";
-import { Sparkline } from "@/components/ui/Sparkline";
-import { Stat } from "@/components/stocks/StocksPanel";
+import { cn } from "@/lib/utils";
+import { LivePrice } from "@/components/ui/LivePrice";
 
-const KIND_LABEL: Record<BondKind, string> = { selic: "Tesouro Selic", ipca: "Tesouro IPCA+", prefixado: "Tesouro Prefixado" };
+const GROUPS: { kind: BondKind; title: string; description: string }[] = [
+  { kind: "selic", title: "Tesouro Selic", description: "Pós-fixado: rende a taxa Selic + um pequeno spread. Baixa oscilação, indicado para reserva de emergência." },
+  { kind: "ipca", title: "Tesouro IPCA+", description: "Híbrido: paga a inflação (IPCA) + uma taxa real fixa. Protege o poder de compra no longo prazo." },
+  { kind: "prefixado", title: "Tesouro Prefixado", description: "Taxa fixa definida na compra. Você sabe quanto vai receber se levar até o vencimento." },
+];
 
 const RATE_FORMAT: Record<BondKind, (r: number) => string> = {
-  selic: (r) => `SELIC + ${fmt.rate(r, 4)}`,
+  selic: (r) => `Selic + ${fmt.rate(r, 4)}`,
   ipca: (r) => `IPCA + ${fmt.rate(r)}`,
   prefixado: (r) => `${fmt.rate(r)} a.a.`,
 };
@@ -21,51 +21,70 @@ const RATE_FORMAT: Record<BondKind, (r: number) => string> = {
 export function TreasuryPanel() {
   const bonds = useMarketData((s) => s.bonds);
   const macro = useMarketData((s) => s.macro);
+
   return (
-    <div className="flex flex-col gap-4 sm:gap-5">
-      <GlassCard accent={NEON.purple} className="py-4">
-        <dl className="grid grid-cols-3 divide-x divide-white/[0.07]">
-          {macro.map((m) => (
-            <div key={m.label} className="min-w-0 px-2 first:pl-0 sm:px-5">
-              <dt className="truncate font-mono text-[10px] tracking-[0.2em] text-zinc-500 uppercase">{m.label}</dt>
-              <dd className="tnum mt-1 text-lg font-semibold text-neon-purple sm:text-2xl">{m.value}</dd>
+    <div className="flex flex-col gap-6">
+      <dl className="grid grid-cols-3 gap-3 sm:gap-4">
+        {macro.map((m) => (
+          <div key={m.label} className="card p-3 sm:p-5">
+            <dt className="text-xs text-muted sm:text-sm">{m.label}</dt>
+            <dd className="tnum mt-1 text-lg font-semibold tracking-tight sm:text-2xl">{m.value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {GROUPS.map((g) => (
+          <section key={g.kind} aria-labelledby={`grupo-${g.kind}`} className="flex flex-col gap-3">
+            <div className="px-1">
+              <h2 id={`grupo-${g.kind}`} className="text-base font-semibold">
+                {g.title}
+              </h2>
+              <p className="mt-0.5 text-sm text-muted">{g.description}</p>
             </div>
-          ))}
-        </dl>
-      </GlassCard>
-      <div className="grid gap-4 sm:gap-5 md:grid-cols-2 2xl:grid-cols-3">
-        {bonds.map((b) => (
-          <BondCard key={b.id} bond={b} />
+            {bonds
+              .filter((b) => b.kind === g.kind)
+              .map((b) => (
+                <BondCard key={b.id} bond={b} />
+              ))}
+          </section>
         ))}
       </div>
+
+      <p className="text-xs text-subtle">
+        Taxa subindo derruba o preço do título (marcação a mercado): por isso alta de taxa aparece em vermelho para quem já investiu.
+      </p>
     </div>
   );
 }
 
-const BondCard = memo(function BondCard({ bond }: { bond: Bond }) {
-  // Taxa caindo valoriza o título: verde. Subindo: vermelho.
-  const bpsColor = bond.changeBps <= 0 ? NEON.lime : NEON.red;
+function BondCard({ bond }: { bond: Bond }) {
+  const rateUp = bond.changeBps > 0;
   return (
-    <GlassCard accent={NEON.purple}>
-      <div className="flex items-center justify-between gap-2">
-        <span className="rounded-full bg-neon-purple/15 px-2.5 py-1 font-mono text-[10px] tracking-[0.18em] text-neon-purple uppercase">
-          {KIND_LABEL[bond.kind]}
-        </span>
-        <span className="text-xs text-zinc-500">Venc. {bond.maturity}</span>
+    <article className="card p-4">
+      <div className="flex items-baseline justify-between gap-2">
+        <h3 className="text-sm font-semibold">{bond.title}</h3>
+        <span className="text-xs text-muted">Venc. {bond.maturity}</span>
       </div>
-      <h3 className="mt-4 text-lg font-semibold">{bond.title}</h3>
-      <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <PriceTicker value={bond.rate} format={RATE_FORMAT[bond.kind]} invert className="text-2xl font-semibold tracking-tight sm:text-[1.7rem]" />
-        <span className="tnum text-xs font-semibold" style={{ color: bpsColor }}>
+      <div className="mt-2 flex flex-wrap items-baseline gap-x-2">
+        <LivePrice value={bond.rate} format={RATE_FORMAT[bond.kind]} className="text-xl font-semibold tracking-tight" />
+        <span
+          className={cn("tnum rounded-md px-1.5 py-0.5 text-xs font-semibold", rateUp ? "bg-down-soft text-down" : "bg-up-soft text-up")}
+          title="Variação da taxa desde a abertura, em pontos-base (1 bp = 0,01 p.p.)"
+        >
           {fmt.bps(bond.changeBps)}
         </span>
       </div>
-      <Sparkline data={bond.history} color={NEON.purple} height={56} className="mt-4" />
-      <div className="hairline my-4" />
-      <dl className="grid grid-cols-2 gap-2 text-sm">
-        <Stat label="Preço unitário" value={fmt.brl(bond.unitPrice)} />
-        <Stat label="Invest. mínimo" value={fmt.brl(bond.minimumInvestment)} />
+      <dl className="mt-3 grid grid-cols-2 gap-2 border-t border-line pt-3 text-sm">
+        <div>
+          <dt className="text-xs text-muted">Preço unitário</dt>
+          <dd className="tnum font-medium">{fmt.brl(bond.unitPrice)}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted">Invest. mínimo</dt>
+          <dd className="tnum font-medium">{fmt.brl(bond.minimumInvestment)}</dd>
+        </div>
       </dl>
-    </GlassCard>
+    </article>
   );
-});
+}

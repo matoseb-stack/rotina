@@ -7,7 +7,7 @@ const FOLHA_SOURCE = { name: "Folha de S.Paulo · Mercado", kind: "folha" } as c
 
 const NAMED_ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
 
-function decodeEntities(text: string): string {
+export function decodeEntities(text: string): string {
   return text.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (match, code: string) => {
     if (code[0] === "#") {
       const n = code[1].toLowerCase() === "x" ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
@@ -17,8 +17,8 @@ function decodeEntities(text: string): string {
   });
 }
 
-const stripTags = (html: string) => html.replace(/<\/?(p|br|div|li)[^>]*>/gi, " ").replace(/<[^>]*>/g, "");
-const squash = (text: string) => text.replace(/\s+/g, " ").replace(/\s+([,.;:!?)])/g, "$1").trim();
+export const stripTags = (html: string) => html.replace(/<\/?(p|br|div|li)[^>]*>/gi, " ").replace(/<[^>]*>/g, "");
+export const squash = (text: string) => text.replace(/\s+/g, " ").replace(/\s+([,.;:!?)])/g, "$1").trim();
 
 function tag(block: string, name: string): string {
   const m = block.match(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`, "i"));
@@ -30,7 +30,7 @@ function tag(block: string, name: string): string {
  * Os links do RSS passam por um redirecionador ("...rss091/*https://www1.folha...").
  * Extrai o destino e só aceita domínios da Folha; qualquer outra coisa vira a capa de Mercado.
  */
-function resolveLink(raw: string): string {
+export function resolveLink(raw: string): string {
   const target = raw.includes("*") ? raw.slice(raw.indexOf("*") + 1) : raw;
   try {
     const url = new URL(target.trim());
@@ -50,7 +50,7 @@ function parseDate(pubDate: string, description: string): number {
   return Date.now();
 }
 
-function hash(text: string): string {
+export function hash(text: string): string {
   let h = 5381;
   for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
   return (h >>> 0).toString(36);
@@ -87,9 +87,9 @@ export function parseFolhaRss(xml: string, limit = 60): NewsItem[] {
 
 export async function fetchFolhaMercado(): Promise<NewsItem[]> {
   const res = await fetch(FOLHA_MERCADO_RSS, {
-    headers: { "User-Agent": "NeonInvestWire/1.0 (+leitor de RSS)", Accept: "application/rss+xml, text/xml" },
+    headers: { "User-Agent": "PainelInvestimentos/1.0 (+leitor de RSS)", Accept: "application/rss+xml, text/xml" },
     signal: AbortSignal.timeout(8_000),
-    next: { revalidate: 120 },
+    next: { revalidate: 900 },
   });
   if (!res.ok) throw new Error(`Folha RSS respondeu ${res.status}`);
   // O feed da Folha é ISO-8859-1; decodifica pelo charset declarado.

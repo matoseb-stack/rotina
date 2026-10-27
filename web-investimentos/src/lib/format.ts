@@ -43,3 +43,24 @@ export const fmt = {
     return `há ${Math.floor(h / 24)} d`;
   },
 };
+
+const dayMonth = new Intl.DateTimeFormat(LOCALE, { day: "2-digit", month: "2-digit", timeZone: TIME_ZONE });
+const monthYear = new Intl.DateTimeFormat(LOCALE, { month: "short", year: "2-digit", timeZone: TIME_ZONE });
+const dateTime = new Intl.DateTimeFormat(LOCALE, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", hour12: false, timeZone: TIME_ZONE });
+const dateLong = new Intl.DateTimeFormat(LOCALE, { day: "2-digit", month: "short", year: "numeric", timeZone: TIME_ZONE });
+
+/** Rótulos de eixo/tooltip conforme a granularidade do período. */
+export const chartFmt = {
+  axis(ms: number, period: string): string {
+    if (period === "1D") return hourFmt.format(ms);
+    if (period === "5D" || period === "1M") return dayMonth.format(ms);
+    return monthYear.format(ms).replace(". de ", "/").replace(" de ", "/");
+  },
+  tooltip(ms: number, period: string): string {
+    return period === "1D" || period === "5D" ? dateTime.format(ms) : dateLong.format(ms);
+  },
+};
+
+const decimal2 = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+export const decimal = (v: number) => decimal2.format(v);
+export const signedBrl = (v: number) => `${v >= 0 ? "+" : "−"}${currency.format(Math.abs(v))}`;

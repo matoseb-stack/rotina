@@ -3,8 +3,9 @@ import { fetchFolhaMercado } from "@/lib/news/folha";
 import { buildMockFeed } from "@/lib/news/mock";
 import type { NewsFeed } from "@/lib/news/types";
 
-// Revalida o cache do servidor a cada 2 minutos: o RSS da Folha não precisa de mais que isso.
-export const revalidate = 120;
+// Estático no build (GitHub Pages) e revalidado a cada 15 min no servidor (Vercel).
+export const dynamic = "force-static";
+export const revalidate = 900;
 
 export async function GET() {
   let feed: NewsFeed;
@@ -14,7 +15,5 @@ export async function GET() {
     const reason = error instanceof Error ? error.message : "erro desconhecido";
     feed = buildMockFeed(Date.now(), `Feed da Folha indisponível (${reason}). Exibindo manchetes simuladas.`);
   }
-  return NextResponse.json(feed, {
-    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
-  });
+  return NextResponse.json(feed);
 }
