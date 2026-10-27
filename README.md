@@ -88,3 +88,14 @@ src/
 bot/           servidor do bot de WhatsApp (Node, sem dependências)
 public/favicon.svg
 ```
+
+
+## Painel de Investimentos (Android)
+
+App Android nativo para tablet, em Jetpack Compose, com cotações em tempo real (dados simulados). Veja [`android-investimentos/`](android-investimentos/README.md).
+
+## Painel de Investimentos (Web / PWA)
+
+**Link: https://matoseb-stack.github.io/rotina/investimentos/**
+
+Versão web em Next.js + Tailwind com cotações e gráficos reais da B3 e dos EUA (ações e ETFs), dólar, indicadores do Banco Central, central de notícias com 10 veículos, faixa de última hora e resumo do dia, em tema claro ou escuro. Veja [`web-investimentos/`](web-investimentos/README.md).
