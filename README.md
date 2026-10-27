@@ -88,3 +88,8 @@ src/
 bot/           servidor do bot de WhatsApp (Node, sem dependências)
 public/favicon.svg
 ```
+
+
+## Painel de Investimentos (Android)
+
+App Android nativo para tablet, em Jetpack Compose, com cotações em tempo real (dados simulados). Veja [`android-investimentos/`](android-investimentos/README.md).
