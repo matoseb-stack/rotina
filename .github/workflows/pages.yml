@@ -3,6 +3,13 @@ name: Publicar no GitHub Pages
 on:
   push:
     branches: [main, claude/rotina-inteligente-prototype-hlbdhu]
+    # Mudanças só no Painel de Investimentos, no app Android ou no README não
+    # republicam o app Rotina (o painel tem o próprio workflow, investimentos.yml).
+    paths-ignore:
+      - "web-investimentos/**"
+      - "android-investimentos/**"
+      - ".github/workflows/investimentos.yml"
+      - "README.md"
   workflow_dispatch:
 
 permissions:
