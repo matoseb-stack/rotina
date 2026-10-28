@@ -7,7 +7,7 @@ import { fetchYahooChart, mapLimit, type YahooChart } from "./yahoo";
 /** Revalidação das cotações no servidor (Vercel). No GitHub Pages vale o horário do build. */
 export const QUOTES_REVALIDATE = 60;
 
-function quoteFromYahoo(seed: StockSeed, { meta, points }: YahooChart): Quote {
+export function quoteFromYahoo(seed: StockSeed, { meta, points }: YahooChart): Quote {
   const price = meta.regularMarketPrice;
   const previousClose = meta.chartPreviousClose ?? meta.previousClose ?? seed.previousClose;
   const prices = points.map((p) => p.price);

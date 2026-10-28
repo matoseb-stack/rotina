@@ -14,6 +14,7 @@ import { ChangeChip } from "@/components/ui/ChangeChip";
 import { Icon } from "@/components/ui/Icon";
 import { LivePrice } from "@/components/ui/LivePrice";
 import { StockLogo } from "@/components/ui/StockLogo";
+import { AssetInsight } from "./AssetInsight";
 import { AssetNews } from "./AssetNews";
 import { StockChart } from "./StockChart";
 
@@ -169,7 +170,9 @@ function ModalBody({ symbol, onClose }: { symbol: string; onClose: () => void })
               </div>
             </div>
 
-            <aside className="lg:border-l lg:border-line lg:pl-6">
+            <aside className="flex flex-col gap-5 lg:border-l lg:border-line lg:pl-6">
+              {/* Antes das notícias: o resumo de por que o ativo sobe ou cai hoje. */}
+              <AssetInsight symbol={quote.symbol} />
               <AssetNews symbol={quote.symbol} market={quote.market} name={quote.name.replace(/ (ON|PN)$/, "")} />
             </aside>
           </div>
