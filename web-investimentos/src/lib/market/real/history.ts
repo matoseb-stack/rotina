@@ -22,11 +22,18 @@ export async function fetchRealHistory(seed: StockSeed): Promise<HistoryPayload>
   let previousClose: number | undefined;
   const errors: string[] = [];
   await mapLimit(Object.keys(QUERIES) as PeriodKey[], 3, async (period) => {
-    const { range, interval } = QUERIES[period];
+    // Cripto: "1D" são as últimas 24 h (série de 15 min), não o dia desde 00h UTC.
+    const crypto1D = seed.kind === "crypto" && period === "1D";
+    const { range, interval } = crypto1D ? { range: "5d", interval: "15m" } : QUERIES[period];
     try {
       const chart = await fetchYahooChart(seed, range, interval, HISTORY_REVALIDATE);
-      series[period] = chart.points.map(({ t, price }) => ({ t, price: Math.round(price * 100) / 100 }));
-      if (period === "1D") previousClose = chart.meta.chartPreviousClose ?? chart.meta.previousClose;
+      const cutoff = crypto1D ? (chart.points.at(-1)?.t ?? Date.now()) - 86_400_000 : -Infinity;
+      // Cripto vale centavos (ADA, XRP) ou frações de centavo (stablecoins): guarda 6 dígitos significativos.
+      const round = (v: number) => (seed.kind === "crypto" ? Number(v.toPrecision(6)) : Math.round(v * 100) / 100);
+      series[period] = chart.points.filter((p) => p.t >= cutoff).map(({ t, price }) => ({ t, price: round(price) }));
+      if (period === "1D") {
+        previousClose = crypto1D ? series[period]![0]?.price : chart.meta.chartPreviousClose ?? chart.meta.previousClose;
+      }
     } catch (error) {
       errors.push(`${period}: ${error instanceof Error ? error.message : "erro"}`);
     }

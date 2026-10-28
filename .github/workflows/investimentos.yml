@@ -40,6 +40,10 @@ jobs:
           npm run build:static
         env:
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}/investimentos
+          # Resumo de IA por ativo (opcional): sem a chave, sai o resumo automático.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Reaproveita os resumos já publicados enquanto forem recentes (economiza chamadas).
+          INSIGHTS_REUSE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/investimentos
       - name: Conferir se as cotações vieram da fonte real
         working-directory: web-investimentos
         run: node -e "const q=require('./out/api/market/quotes.json');console.log('fonte:',q.source,'| IBOV',q.index.price,'| aviso:',q.notice||'-')"

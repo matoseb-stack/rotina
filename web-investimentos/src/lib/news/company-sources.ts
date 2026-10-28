@@ -27,8 +27,9 @@ export const COMPANY_SOURCES: Record<string, CompanySource> = {
 };
 
 /** Página com mais notícias de um ativo: Folha (B3) ou Google News em inglês (EUA). */
-export function assetMoreUrl(symbol: string, market: "b3" | "us", newsQuery?: string): string {
+export function assetMoreUrl(symbol: string, market: "b3" | "us" | "crypto", newsQuery?: string): string {
   if (market === "b3") return companyMoreUrl(symbol);
+  if (market === "crypto") return `https://cointelegraph.com.br/search?query=${encodeURIComponent(newsQuery ?? symbol)}`;
   return `https://news.google.com/search?q=${encodeURIComponent(newsQuery ?? `${symbol} stock`)}&hl=en-US&gl=US&ceid=US:en`;
 }
 

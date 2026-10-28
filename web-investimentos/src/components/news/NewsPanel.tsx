@@ -4,7 +4,7 @@ import { memo, useMemo, useState } from "react";
 import { useNewsFeed } from "@/hooks/useNewsFeed";
 import { useNow } from "@/hooks/useNow";
 import { fmt } from "@/lib/format";
-import { NEWS_SOURCES, SOURCE_BY_ID } from "@/lib/news/sources";
+import { NEWS_SOURCES, SOURCE_BY_ID, type NewsSourceDef } from "@/lib/news/sources";
 import { CATEGORY_COLORS, NEWS_FILTERS, type NewsFilter, type NewsItem } from "@/lib/news/types";
 import { cn } from "@/lib/utils";
 import { Icon } from "@/components/ui/Icon";
@@ -13,9 +13,17 @@ import { SourceSeal } from "./SourceSeal";
 
 const PAGE = 30;
 
+/** Veículos agrupados no filtro: imprensa brasileira, internacional e portais de cripto. */
+const SOURCE_GROUPS: { id: string; label: string; match: (s: NewsSourceDef) => boolean }[] = [
+  { id: "br", label: "Brasil", match: (s) => s.region === "br" && !s.crypto },
+  { id: "intl", label: "Internacional", match: (s) => s.region === "intl" && !s.crypto },
+  { id: "crypto", label: "Cripto", match: (s) => Boolean(s.crypto) },
+];
+
 /**
  * Central de notícias multifontes: Valor, Folha, InfoMoney, Investing.com,
- * Estadão, Bloomberg, Reuters, CNBC, FT e WSJ. Filtros por tema e por veículo.
+ * Estadão, Bloomberg, Reuters, CNBC, FT, WSJ e os portais de cripto CoinDesk,
+ * Cointelegraph Brasil e CriptoFácil. Filtros por tema e por veículo.
  */
 export function NewsPanel() {
   const { feed, status, refresh } = useNewsFeed();
@@ -27,7 +35,7 @@ export function NewsPanel() {
   const items = useMemo(() => feed?.items ?? [], [feed]);
   const bySource = useMemo(() => (sourceId ? items.filter((i) => i.source.id === sourceId) : items), [items, sourceId]);
   const counts = useMemo(() => {
-    const c: Record<NewsFilter, number> = { all: bySource.length, macro: 0, acoes: 0, global: 0, rendafixa: 0 };
+    const c: Record<NewsFilter, number> = { all: bySource.length, macro: 0, acoes: 0, global: 0, rendafixa: 0, cripto: 0 };
     for (const i of bySource) c[i.filter]++;
     return c;
   }, [bySource]);
@@ -83,11 +91,11 @@ export function NewsPanel() {
           </div>
         </div>
         <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
-          {(["br", "intl"] as const).map((region) => (
-            <div key={region} className="min-w-0 sm:flex-1">
-              <p className="mb-1.5 text-[11px] font-medium tracking-wide text-subtle uppercase">{region === "br" ? "Brasil" : "Internacional"}</p>
+          {SOURCE_GROUPS.map((group) => (
+            <div key={group.id} className="min-w-0 sm:flex-1">
+              <p className="mb-1.5 text-[11px] font-medium tracking-wide text-subtle uppercase">{group.label}</p>
               <div className="no-scrollbar -mx-3 flex gap-1.5 overflow-x-auto px-3 sm:mx-0 sm:flex-wrap sm:px-0">
-                {NEWS_SOURCES.filter((s) => s.region === region).map((s) => {
+                {NEWS_SOURCES.filter(group.match).map((s) => {
                   const active = sourceId === s.id;
                   const count = sourceCounts.get(s.id) ?? 0;
                   return (

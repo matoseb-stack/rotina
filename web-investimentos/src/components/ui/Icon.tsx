@@ -1,6 +1,6 @@
 type IconName =
   | "chart" | "shield" | "news" | "sun" | "moon" | "external" | "close"
-  | "refresh" | "arrow-up" | "arrow-down" | "info" | "globe" | "bolt" | "sparkles" | "filter";
+  | "refresh" | "arrow-up" | "arrow-down" | "info" | "globe" | "bolt" | "sparkles" | "filter" | "coin";
 
 const PATHS: Record<IconName, string> = {
   chart: "M3 17l5-5 4 4 8-9M14 7h6v6",
@@ -18,6 +18,7 @@ const PATHS: Record<IconName, string> = {
   bolt: "M13 2L4 14h7l-1 8 9-12h-7l1-8z",
   sparkles: "M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4L12 3zM19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z",
   filter: "M3 5h18l-7 8v6l-4 2v-8L3 5z",
+  coin: "M12 21a9 9 0 100-18 9 9 0 000 18zM9.5 8h4a2 2 0 010 4h-4h4.5a2 2 0 010 4h-4.5V8zM11 6.5V8M11 16v1.5",
 };
 
 export function Icon({ name, className = "size-5" }: { name: IconName; className?: string }) {

@@ -1,11 +1,11 @@
 "use client";
 
 import { memo } from "react";
-import { fmt, money, signedMoney } from "@/lib/format";
+import { fmt, priceFormatter, signedMoney } from "@/lib/format";
 import type { Quote } from "@/lib/market/types";
 import { cn } from "@/lib/utils";
 import { ChangeChip } from "@/components/ui/ChangeChip";
-import { LivePrice } from "@/components/ui/LivePrice";
+import { LivePrice, TickDot } from "@/components/ui/LivePrice";
 import { Sparkline } from "@/components/ui/Sparkline";
 import { StockLogo } from "@/components/ui/StockLogo";
 
@@ -20,7 +20,8 @@ interface StockCardProps {
 export const StockCard = memo(function StockCard({ quote, onOpen, fxRate }: StockCardProps) {
   const up = quote.changePct >= 0;
   const usd = quote.currency === "USD";
-  const format = (v: number) => money(v, quote.currency);
+  const format = priceFormatter(quote);
+  const crypto = quote.kind === "crypto";
   return (
     <button
       type="button"
@@ -40,6 +41,8 @@ export const StockCard = memo(function StockCard({ quote, onOpen, fxRate }: Stoc
           </p>
           <p className="truncate text-xs text-muted">{quote.kind === "etf" ? `Acompanha ${quote.sector}` : quote.name}</p>
         </div>
+        {/* Cripto ao vivo: pulsa a cada tick recebido da Coinbase. */}
+        {crypto && quote.marketTime ? <TickDot tick={quote.marketTime} tone={up ? "up" : "down"} className="self-start" /> : null}
       </div>
 
       <div>
@@ -47,7 +50,11 @@ export const StockCard = memo(function StockCard({ quote, onOpen, fxRate }: Stoc
         {usd && fxRate ? <p className="tnum text-xs text-muted">≈ {fmt.brl(quote.price * fxRate)}</p> : null}
         <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
           <ChangeChip value={quote.changePct} />
-          <span className={cn("tnum hidden text-xs sm:inline", up ? "text-up" : "text-down")}>{signedMoney(quote.change, quote.currency)}</span>
+          {crypto ? (
+            <MomentumBadge changePct={quote.changePct} stable={quote.sector === "Stablecoin"} />
+          ) : (
+            <span className={cn("tnum hidden text-xs sm:inline", up ? "text-up" : "text-down")}>{signedMoney(quote.change, quote.currency)}</span>
+          )}
         </div>
       </div>
 
@@ -59,3 +66,22 @@ export const StockCard = memo(function StockCard({ quote, onOpen, fxRate }: Stoc
     </button>
   );
 });
+
+/** Selo sutil do momento do mercado (variação de 24 h). */
+function MomentumBadge({ changePct, stable }: { changePct: number; stable: boolean }) {
+  if (stable) return <span className="text-[11px] text-muted">24h · paridade US$ 1</span>;
+  const strong = Math.abs(changePct) >= 3;
+  const up = changePct >= 0;
+  return (
+    <span
+      className={cn(
+        "rounded-full px-1.5 py-px text-[10px] font-semibold tracking-wide uppercase ring-1",
+        up ? "text-up ring-up/30" : "text-down ring-down/30",
+        strong && (up ? "bg-up-soft shadow-[0_0_10px_-2px_var(--up)]" : "bg-down-soft shadow-[0_0_10px_-2px_var(--down)]"),
+      )}
+      title="Variação nas últimas 24 horas"
+    >
+      24h · {strong ? (up ? "forte alta" : "forte queda") : up ? "alta" : "queda"}
+    </span>
+  );
+}

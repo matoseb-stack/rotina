@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useStockHistory } from "@/hooks/useStockHistory";
-import { chartFmt, decimal, fmt, money } from "@/lib/format";
+import { chartFmt, decimal, fmt, priceFormatter } from "@/lib/format";
 import { PERIODS, type Period } from "@/lib/market/periods";
 import type { Quote } from "@/lib/market/types";
 import { useTheme } from "@/lib/theme";
@@ -37,6 +37,9 @@ interface ChartPoint {
  */
 export function StockChart({ quote }: { quote: Quote }) {
   const [period, setPeriod] = useState<Period>("1D");
+  const crypto = quote.kind === "crypto";
+  const formatPrice = priceFormatter(quote);
+  const periodLabel = (p: Period) => (crypto && p === "1D" ? "em 24 h" : PERIOD_LABEL[p]);
   const history = useStockHistory(quote.symbol);
   const theme = useTheme();
   const colors = PALETTE[theme];
@@ -51,8 +54,13 @@ export function StockChart({ quote }: { quote: Quote }) {
     return series.map((p, i) => ({ i, ...p }));
   }, [history, period, quote.marketTime, quote.price]);
 
+  // Cripto: a base do 1D é o preço de 24 h atrás do feed ao vivo, a mesma do card.
   const baseline =
-    period === "1D" ? (history.status === "ready" ? history.data.previousClose : undefined) ?? quote.previousClose : data[0]?.price;
+    period === "1D"
+      ? crypto
+        ? quote.previousClose
+        : ((history.status === "ready" ? history.data.previousClose : undefined) ?? quote.previousClose)
+      : data[0]?.price;
   const lastPrice = data[data.length - 1]?.price ?? quote.price;
   const change = baseline ? ((lastPrice - baseline) / baseline) * 100 : 0;
   const color = change >= 0 ? colors.up : colors.down;
@@ -80,7 +88,7 @@ export function StockChart({ quote }: { quote: Quote }) {
         </div>
         {data.length > 1 && (
           <p className="text-sm text-muted">
-            <span className={cn("tnum font-semibold", change >= 0 ? "text-up" : "text-down")}>{fmt.pct(change)}</span> {PERIOD_LABEL[period]}
+            <span className={cn("tnum font-semibold", change >= 0 ? "text-up" : "text-down")}>{fmt.pct(change)}</span> {periodLabel(period)}
           </p>
         )}
       </div>
@@ -93,7 +101,7 @@ export function StockChart({ quote }: { quote: Quote }) {
             {history.status === "error" ? "Não foi possível carregar o histórico agora." : "Sem dados para este período."}
           </div>
         ) : (
-          <div className="h-full" role="img" aria-label={`Gráfico de ${quote.symbol} ${PERIOD_LABEL[period]}: ${fmt.pct(change)}`}>
+          <div className="h-full" role="img" aria-label={`Gráfico de ${quote.symbol} ${periodLabel(period)}: ${fmt.pct(change)}`}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={data} margin={{ top: 8, right: 4, bottom: 0, left: 0 }}>
                 <defs>
@@ -116,7 +124,7 @@ export function StockChart({ quote }: { quote: Quote }) {
                 <YAxis
                   orientation="right"
                   domain={["auto", "auto"]}
-                  tickFormatter={(v: number) => decimal(v)}
+                  tickFormatter={(v: number) => (crypto && Math.abs(v) < 10 ? v.toFixed(4).replace(".", ",") : decimal(v))}
                   tick={{ fill: colors.axis, fontSize: 11 }}
                   axisLine={false}
                   tickLine={false}
@@ -134,7 +142,7 @@ export function StockChart({ quote }: { quote: Quote }) {
                       <div className="rounded-lg border border-line bg-surface px-3 py-2 text-xs shadow-pop">
                         <p className="text-muted">{chartFmt.tooltip(point.t, period)}</p>
                         <p className="tnum mt-0.5 text-sm font-semibold">
-                          {quote.kind === "index" ? fmt.points(point.price) : money(point.price, quote.currency)}
+                          {quote.kind === "index" ? fmt.points(point.price) : formatPrice(point.price)}
                         </p>
                       </div>
                     );
@@ -156,8 +164,8 @@ export function StockChart({ quote }: { quote: Quote }) {
         )}
       </div>
       <p className="mt-2 text-xs text-subtle">
-        Fonte: Yahoo Finance (atraso de até 15 min).
-        {period === "1D" && baseline ? ` Linha tracejada: fechamento anterior (${money(baseline, quote.currency)}).` : ""}
+        {crypto ? "Fonte: Yahoo Finance; último ponto ao vivo pela Coinbase. 1D = últimas 24 h." : "Fonte: Yahoo Finance (atraso de até 15 min)."}
+        {period === "1D" && baseline ? ` Linha tracejada: ${crypto ? "preço de 24 h atrás" : "fechamento anterior"} (${formatPrice(baseline)}).` : ""}
       </p>
     </div>
   );

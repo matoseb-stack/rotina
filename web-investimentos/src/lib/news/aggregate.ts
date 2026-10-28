@@ -6,7 +6,7 @@ import { clean, fetchFeed, firstSentence, hash, resolveLink, stripSourceSuffix, 
 import { NEWS_SOURCES, type NewsSourceDef } from "./sources";
 import type { NewsFeed, NewsItem, NewsSourceStatus } from "./types";
 
-export const NEWS_REVALIDATE = 900;
+export const NEWS_REVALIDATE = 300;
 const PER_SOURCE = 25;
 const MAX_AGE_MS = 4 * 86_400_000;
 
@@ -19,7 +19,7 @@ function toItems(source: NewsSourceDef, raw: RawFeedItem[], via?: string): NewsI
     const title = stripSourceSuffix(it.title, it.sourceName ?? source.name);
     if (!url || !title) continue;
     const published = it.published ?? now;
-    if (now - published > MAX_AGE_MS) continue;
+    if (now - published > (source.maxAgeDays ? source.maxAgeDays * 86_400_000 : MAX_AGE_MS)) continue;
     // Folha: remove "Leia mais" e o carimbo "(10/27/2026 - 14h54)" do fim da descrição.
     const body = clean(it.description.replace(/<a[^>]*>\s*Leia mais\s*<\/a>/i, ""))
       .replace(/\(\d{2}\/\d{2}\/\d{4} - \d{2}h\d{2}\)\s*$/, "")
@@ -35,7 +35,7 @@ function toItems(source: NewsSourceDef, raw: RawFeedItem[], via?: string): NewsI
       source: { id: source.id, name: source.name },
       lang: source.lang,
       via,
-      ...classify(title, body, source.region),
+      ...classify(title, body, source.region, source.crypto),
     });
   }
   return items.sort((a, b) => b.publishedAt - a.publishedAt).slice(0, PER_SOURCE);

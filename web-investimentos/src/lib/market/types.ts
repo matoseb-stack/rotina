@@ -1,6 +1,6 @@
-export type Market = "b3" | "us";
+export type Market = "b3" | "us" | "crypto";
 export type Currency = "BRL" | "USD";
-export type AssetKind = "stock" | "etf" | "index" | "fx";
+export type AssetKind = "stock" | "etf" | "index" | "fx" | "crypto";
 
 export interface StockSeed {
   symbol: string;
@@ -14,6 +14,12 @@ export interface StockSeed {
   yahoo?: string;
   /** Busca de notícias internacionais (Google News) para ativos dos EUA. */
   newsQuery?: string;
+  /** Cripto: id na CoinGecko (capitalização, volume, ranking). */
+  coingeckoId?: string;
+  /** Cripto: par na Coinbase para preço ao vivo (ex.: "BTC-USD"). */
+  coinbase?: string;
+  /** Cripto: termos que identificam o ativo nas manchetes. */
+  newsKeywords?: string[];
   previousClose: number;
   /** Desvio-padrão do retorno a cada tick (1 s). */
   volatility: number;
@@ -62,6 +68,17 @@ export interface Quote {
   fiftyTwoWeekLow?: number;
   /** true quando a fonte real falhou para este ativo e o valor é de referência. */
   stale?: boolean;
+  /** Cripto: capitalização de mercado e volume de 24 h em US$, e ranking (CoinGecko). */
+  marketCap?: number;
+  volume24h?: number;
+  rank?: number;
+}
+
+/** Visão geral do mercado cripto (CoinGecko /global). */
+export interface CryptoGlobal {
+  btcDominance: number | null;
+  totalMarketCap: number | null;
+  marketCapChange24h: number | null;
 }
 
 export interface Bond {
@@ -110,6 +127,9 @@ export interface MarketPayload {
   global: Quote[];
   /** Dólar comercial (USD/BRL). */
   fx: Quote;
+  /** Criptomoedas: preço em US$ e variação de 24 h. */
+  crypto: Quote[];
+  cryptoGlobal: CryptoGlobal | null;
   macro: MacroIndicator[];
   macroSource: "bcb" | "referencia";
   notice?: string;
@@ -137,4 +157,6 @@ export interface SimulatedSnapshot {
 /** Estado do mercado no cliente: cotações reais + status do carregamento. */
 export interface MarketSnapshot extends MarketPayload {
   status: "loading" | "ready";
+  /** Feed ao vivo de cripto (Coinbase, atualizado a cada 1 s). */
+  cryptoLive: "connecting" | "live" | "offline";
 }

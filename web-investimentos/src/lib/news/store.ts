@@ -10,10 +10,10 @@ export interface NewsState {
 
 /**
  * Central de notícias compartilhada: um único fetch alimenta a faixa de
- * última hora, o resumo do dia e a aba de notícias. Recarrega a cada 5 min
+ * última hora, o resumo do dia e a aba de notícias. Recarrega a cada 2 min
  * (só com a aba visível).
  */
-function createNewsStore(pollMs = 5 * 60_000) {
+function createNewsStore(pollMs = 2 * 60_000) {
   let timer: ReturnType<typeof setInterval> | null = null;
   const load = async () => {
     const current = store.get();

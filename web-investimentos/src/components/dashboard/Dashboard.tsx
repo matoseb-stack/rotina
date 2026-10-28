@@ -10,6 +10,7 @@ import { MarketStrip } from "@/components/layout/MarketStrip";
 import { MissedTodayModal } from "@/components/briefing/MissedTodayModal";
 import { StocksPanel } from "@/components/stocks/StocksPanel";
 import { InternationalPanel } from "@/components/international/InternationalPanel";
+import { CryptoPanel } from "@/components/crypto/CryptoPanel";
 import { TreasuryPanel } from "@/components/treasury/TreasuryPanel";
 import { NewsPanel } from "@/components/news/NewsPanel";
 
@@ -18,6 +19,7 @@ const STORAGE_KEY = "painel:tab";
 const PANELS: Record<TabId, React.ComponentType> = {
   acoes: StocksPanel,
   internacional: InternationalPanel,
+  cripto: CryptoPanel,
   tesouro: TreasuryPanel,
   noticias: NewsPanel,
 };
@@ -73,8 +75,9 @@ export function Dashboard() {
           </motion.section>
         </AnimatePresence>
         <p className="mt-10 text-center text-xs text-subtle">
-          Cotações: Yahoo Finance (B3 com atraso de até 15 min) · Indicadores: Banco Central · Notícias: Valor, Folha, InfoMoney,
-          Investing.com, Estadão, Bloomberg, Reuters, CNBC, FT e WSJ · Taxas do Tesouro simuladas
+          Cotações: Yahoo Finance (B3 com atraso de até 15 min) · Cripto ao vivo: Coinbase · Métricas cripto: CoinGecko ·
+          Indicadores: Banco Central · Notícias: Valor, Folha, InfoMoney, Investing.com, Estadão, Bloomberg, Reuters, CNBC, FT,
+          WSJ, CoinDesk, Cointelegraph Brasil e CriptoFácil · Taxas do Tesouro simuladas
         </p>
       </main>
 

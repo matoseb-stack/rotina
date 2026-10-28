@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { logoUrl } from "@/lib/market/logos";
+import { LOGO_DARK_BG, logoUrl } from "@/lib/market/logos";
 import type { Market } from "@/lib/market/types";
 import { cn } from "@/lib/utils";
 
@@ -43,7 +43,7 @@ export function StockLogo({ symbol, name, brandColor, market = "b3", size = 36, 
       loading="lazy"
       decoding="async"
       onError={() => setFailed(true)}
-      className={cn("shrink-0 rounded-lg border border-line bg-white object-contain p-0.5", className)}
+      className={cn("shrink-0 rounded-lg border border-line object-contain p-0.5", LOGO_DARK_BG.has(symbol) ? "bg-slate-800" : "bg-white", className)}
       style={style}
     />
   );

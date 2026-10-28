@@ -2,9 +2,11 @@
 
 **🔗 Link público: https://matoseb-stack.github.io/rotina/investimentos/**
 
-Painel de investimentos com **cotações e gráficos reais** da B3 e de Wall Street,
-**central de notícias com 10 veículos** (Brasil e internacional), **faixa de
-última hora** e **resumo "O que você perdeu hoje"**. Visual clean e
+Painel de investimentos com **cotações e gráficos reais** da B3, de Wall Street
+e de **criptomoedas (ao vivo, a cada 1 s)**, **central de notícias com 13
+veículos** (Brasil, internacional e cripto), **resumo de IA** explicando por que
+cada ativo sobe ou cai, **faixa de última hora ao vivo** e **resumo "O que você
+perdeu hoje"** por tema. Visual clean e
 institucional, com temas **claro e escuro**. Funciona no navegador de qualquer
 laptop, PC ou celular e pode ser instalado como app (PWA).
 
@@ -26,23 +28,31 @@ laptop, PC ou celular e pode ser instalado como app (PWA).
 |---|---|---|
 | Ações da B3, Ibovespa | Yahoo Finance (atraso de até 15 min) | 60 s na Vercel · 15 min no GitHub Pages durante o pregão |
 | Ações e ETFs dos EUA, S&P 500, Nasdaq | Yahoo Finance | idem |
+| Criptomoedas (BTC, ETH, SOL, BNB, XRP, ADA, USDT, USDC) | Coinbase WebSocket (ao vivo) + Yahoo Finance (gráficos) | **1 s** no navegador |
+| Capitalização, volume 24 h, ranking, dominância do BTC | CoinGecko | 5 min |
 | Dólar comercial (USD/BRL) | Yahoo Finance (`BRL=X`) | idem |
 | Gráficos 1D · 5D · 1M · 6M · 1Y · ALL | Yahoo Finance (histórico real) | 5 min na Vercel · 15 min no Pages |
 | Selic Meta, CDI, IPCA 12m | Banco Central (SGS 432, 4389, 13522) | 1 h |
-| Notícias gerais | Valor, Folha, InfoMoney, Investing.com Brasil, Estadão, Bloomberg, Reuters, CNBC, FT, WSJ | 15 min na Vercel · 1 h no Pages |
+| Notícias gerais | Valor, Folha, InfoMoney, Investing.com Brasil, Estadão, Bloomberg, Reuters, CNBC, FT, WSJ, CoinDesk, Cointelegraph Brasil, CriptoFácil | 5 min na Vercel (o navegador consulta a cada 2 min) · 1 h no Pages |
+| Notícias por cripto | CoinDesk, Cointelegraph Brasil, CriptoFácil (+ busca no Google News) | 15 min na Vercel · 1 h no Pages |
+| Resumo de IA por ativo | Claude (API da Anthropic), com cotações e manchetes reais | 30 min |
 | Notícias por ação (B3) | Folha de S.Paulo (página do tópico ou busca) | idem |
 | Notícias por ação (EUA) | Reuters, Bloomberg, CNBC, WSJ, FT, MarketWatch, Barron's (via Google News, em inglês) | idem |
 | Taxas dos títulos do Tesouro | **simuladas** (o Tesouro desativou a API pública) | 1 s |
 
-> **Por que não há "tick" de 1 segundo nos preços?** Cotações reais gratuitas
-> não mudam a cada segundo (a B3 chega com até 15 min de atraso). Em vez de
-> inventar oscilações em cima de dados reais, o painel recarrega as cotações a
-> cada 60 s e destaca cada mudança com um realce discreto. Só as taxas do
-> Tesouro, que já são simuladas, andam a cada segundo.
+> **O loop de 1 segundo.** Cripto negocia 24 h e a Coinbase transmite cada
+> negócio por WebSocket: o painel acumula os ticks e aplica tudo **uma vez por
+> segundo** (um único re-render, mesmo com dezenas de negócios). A conexão
+> pausa quando a aba fica em segundo plano. B3, ações americanas e dólar não
+> têm fonte gratuita em tempo real (a B3 chega com até 15 min de atraso): em
+> vez de inventar oscilações, o painel recarrega esses dados a cada 60 s e
+> destaca cada mudança. As taxas do Tesouro, simuladas, andam a cada segundo.
 
 Sobre os veículos:
 - **Reuters** encerrou seus feeds RSS; as manchetes vêm da busca do Google
   News (`site:reuters.com`) e o link abre a matéria na Reuters.
+- **CriptoFácil**: o feed RSS público parou de receber matérias no fim de
+  setembro de 2026; o painel mostra as últimas (até 45 dias) e o link leva ao site.
 - **CNBC** bloqueia alguns servidores; quando isso acontece, cai no mesmo
   caminho do Google News.
 - **Broadcast (Estadão)** é exclusivo para assinantes do terminal; usamos o
@@ -55,16 +65,19 @@ Sobre os veículos:
 ## O que tem no painel
 
 ### Topo fixo
-- **Faixa de última hora:** manchetes de alto impacto e macro de todos os
-  veículos, deslizando continuamente.
+- **Faixa de última hora (LIVE FEED / AO VIVO):** manchetes de alto impacto,
+  macro e cripto de todos os veículos, deslizando continuamente e
+  recarregadas a cada 2 min; itens que chegaram desde a última leitura ganham
+  o selo **NOVO**.
   - Selo vermelho **BREAKING** para alto impacto nas últimas 2 h.
-  - Selo amarelo **MACRO ALERT** para Copom, Fed, inflação e fiscal.
+  - Selo amarelo **MACRO ALERT** para Copom, Fed, câmbio, inflação e fiscal.
+  - Selo laranja **CRIPTO ALERT** para bitcoin, ETFs de cripto, hacks e liquidações.
   - Pausa ao passar o mouse ou focar, e vira rolagem manual com "reduzir movimento".
 - **"O que você perdeu hoje":** abre sozinho na primeira visita do dia e pelo
-  botão **Resumo do dia**. Traz 4 tópicos montados com números reais:
-  Ibovespa e destaques da B3, S&P 500/Nasdaq e a Big Tech que lidera, dólar,
-  e a manchete mais recente de Copom/Fed com a Selic atual.
-- **Faixa de mercado:** Ibovespa, S&P 500, Nasdaq e dólar.
+  botão **Resumo do dia**. Organizado em **Macroeconomia, B3, Mercado
+  americano e Cripto**, cada tema com números reais e a manchete mais
+  relevante do momento (sem repetir manchete entre temas).
+- **Faixa de mercado:** Ibovespa, S&P 500, Nasdaq, dólar e Bitcoin (24 h).
 
 ### Ações (B3)
 Grid com as 15 principais ações, maiores altas e baixas, e um modal com
@@ -78,14 +91,30 @@ gráfico real, estatísticas do dia e notícias da Folha.
 - O modal tem gráfico real, estatísticas e notícias da imprensa global
   (em inglês, com o nome de cada veículo).
 
+### Criptomoedas (novo)
+- **Cards:** BTC, ETH, SOL, BNB, XRP, ADA e as stablecoins USDT e USDC, com
+  logo, preço em US$, valor aproximado em R$, variação em 24 h e selo de
+  momento (verde/vermelho, com brilho sutil em movimentos de 3% ou mais).
+- **Topo da aba:** dominância do BTC, valor total do mercado cripto e dólar.
+- **Modal:** gráfico real 1D (24 h) · 5D · 1M · 6M · 1Y · ALL, capitalização,
+  volume em 24 h, dominância do BTC, máxima/mínima 24 h, ranking, resumo de IA
+  e notícias da moeda (CoinDesk, Cointelegraph Brasil, CriptoFácil).
+
+### Resumo de IA (todas as abas)
+No modal de cada ativo, um card explica **por que ele está subindo ou caindo**,
+cruzando a variação com o índice de referência, os pares do setor e as
+manchetes recentes (com link para cada fonte). Com `ANTHROPIC_API_KEY`
+configurada o texto é escrito pelo Claude; sem a chave aparece um resumo
+automático montado só com os números.
+
 ### Tesouro Direto
 Selic, IPCA+ e Prefixado por coluna, com Selic/CDI/IPCA reais no topo.
 
 ### Central de Notícias
 - **Filtros por tema:** Todas · Macro & Política · B3 / Ações · EUA & Global ·
-  Renda Fixa / Câmbio.
+  Cripto · Renda Fixa / Câmbio.
 - **Filtro por veículo:** selos com o ícone oficial de cada site, separados em
-  Brasil e Internacional.
+  Brasil, Internacional e Cripto.
 - **Cards:** veículo, "há X min", categoria, **nível de impacto** (alto,
   médio ou neutro, por palavras-chave da manchete) e link para a matéria
   original em nova aba.
@@ -122,8 +151,16 @@ Dicas para manter tudo rodando:
 2. Em **Root Directory**, escolha **`web-investimentos`** (Next.js é detectado sozinho).
 3. Clique em **Deploy**.
 
-Na Vercel o servidor revalida cotações a cada 60 s, gráficos a cada 5 min e
-notícias a cada 15 min, sem rebuild. Não defina `STATIC_EXPORT` lá.
+Na Vercel o servidor revalida cotações a cada 60 s, gráficos e notícias a
+cada 5 min, sem rebuild. Não defina `STATIC_EXPORT` lá. Cada `git push` na
+`main` atualiza a produção sozinho.
+
+**Resumo de IA:** em *Settings → Environment Variables*, crie
+`ANTHROPIC_API_KEY` (chave de console.anthropic.com) e faça um redeploy.
+Opcionais: `INSIGHT_MODEL` (modelo do Claude) e `INSIGHT_TTL_MINUTES`.
+No GitHub Pages, cadastre a mesma chave em *Settings → Secrets and variables →
+Actions* com o nome `ANTHROPIC_API_KEY`; o workflow reaproveita resumos
+recentes já publicados para não gastar a cada build.
 
 ### Instalar como app no celular
 - **iPhone (Safari):** Compartilhar → **Adicionar à Tela de Início**.
