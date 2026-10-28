@@ -1,0 +1,1 @@
+self.__SSG_MANIFEST=new Set(["\u002Fapi\u002Fasset-news\u002F[file]","\u002Fapi\u002Fmarket\u002Fhistory\u002F[file]"]);self.__SSG_MANIFEST_CB&&self.__SSG_MANIFEST_CB()
