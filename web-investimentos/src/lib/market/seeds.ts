@@ -56,8 +56,22 @@ export const FX_SEED: StockSeed = {
   previousClose: 5.3767, volatility: 0.0003, brandColor: "#15803D", about: "Cotação do dólar americano em reais.",
 };
 
+const crypto = { market: "crypto", currency: "USD", kind: "crypto" } as const;
+
+/** Principais criptoativos. O setor descreve a categoria do ativo. */
+export const CRYPTO_SEEDS: StockSeed[] = [
+  { ...crypto, symbol: "BTC", name: "Bitcoin", sector: "Reserva de valor", yahoo: "BTC-USD", coingeckoId: "bitcoin", coinbase: "BTC-USD", previousClose: 81239, volatility: 0.0008, brandColor: "#F7931A", newsKeywords: ["bitcoin", "btc"], about: "A primeira e maior criptomoeda, com oferta limitada a 21 milhões de unidades. O halving corta a emissão de novos bitcoins pela metade a cada ~4 anos." },
+  { ...crypto, symbol: "ETH", name: "Ethereum", sector: "Contratos inteligentes", yahoo: "ETH-USD", coingeckoId: "ethereum", coinbase: "ETH-USD", previousClose: 2359.3, volatility: 0.001, brandColor: "#627EEA", newsKeywords: ["ethereum", "ether", "eth"], about: "Rede de contratos inteligentes onde rodam boa parte das finanças descentralizadas (DeFi), stablecoins e NFTs. O ether paga as taxas da rede." },
+  { ...crypto, symbol: "SOL", name: "Solana", sector: "Contratos inteligentes", yahoo: "SOL-USD", coingeckoId: "solana", coinbase: "SOL-USD", previousClose: 102.63, volatility: 0.0014, brandColor: "#9945FF", newsKeywords: ["solana"], about: "Blockchain de alta velocidade e taxas baixas, popular para pagamentos, memecoins e aplicativos descentralizados." },
+  { ...crypto, symbol: "BNB", name: "BNB", sector: "Exchange", yahoo: "BNB-USD", coingeckoId: "binancecoin", coinbase: "BNB-USD", previousClose: 759.84, volatility: 0.001, brandColor: "#F3BA2F", newsKeywords: ["bnb", "binance"], about: "Token do ecossistema da Binance, maior corretora de cripto do mundo; usado para descontos em taxas e na rede BNB Chain." },
+  { ...crypto, symbol: "XRP", name: "XRP", sector: "Pagamentos", yahoo: "XRP-USD", coingeckoId: "ripple", coinbase: "XRP-USD", previousClose: 1.32, volatility: 0.0013, brandColor: "#23292F", newsKeywords: ["xrp", "ripple"], about: "Criptomoeda voltada a pagamentos internacionais rápidos, associada à empresa Ripple." },
+  { ...crypto, symbol: "ADA", name: "Cardano", sector: "Contratos inteligentes", yahoo: "ADA-USD", coingeckoId: "cardano", coinbase: "ADA-USD", previousClose: 0.2065, volatility: 0.0013, brandColor: "#0033AD", newsKeywords: ["cardano"], about: "Blockchain de contratos inteligentes desenvolvida com foco em pesquisa acadêmica e revisão formal do código." },
+  { ...crypto, symbol: "USDT", name: "Tether", sector: "Stablecoin", yahoo: "USDT-USD", coingeckoId: "tether", coinbase: "USDT-USD", previousClose: 1, volatility: 0.00002, brandColor: "#26A17B", newsKeywords: ["tether", "usdt"], about: "Maior stablecoin do mundo: busca valer sempre US$ 1, com reservas em dólar e títulos do Tesouro americano." },
+  { ...crypto, symbol: "USDC", name: "USD Coin", sector: "Stablecoin", yahoo: "USDC-USD", coingeckoId: "usd-coin", previousClose: 1, volatility: 0.00002, brandColor: "#2775CA", newsKeywords: ["usdc", "circle"], about: "Stablecoin emitida pela Circle, lastreada 1:1 em dólares e títulos de curto prazo, com reservas auditadas." },
+];
+
 /** Ativos com página de detalhe (gráfico + notícias). */
-export const DETAIL_SEEDS: StockSeed[] = [...STOCK_SEEDS, ...US_STOCK_SEEDS, ...ETF_SEEDS];
+export const DETAIL_SEEDS: StockSeed[] = [...STOCK_SEEDS, ...US_STOCK_SEEDS, ...ETF_SEEDS, ...CRYPTO_SEEDS];
 
 export const BOND_SEEDS: BondSeed[] = [
   { id: "selic-2029", kind: "selic", title: "Tesouro Selic 2029", maturity: "01/03/2029", openRate: 0.0921, openUnitPrice: 16_874.32, duration: 0.05 },

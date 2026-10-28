@@ -9,10 +9,11 @@ export type NewsCategory =
   | "Empresas"
   | "Commodities"
   | "Mercados"
+  | "Cripto"
   | "Economia";
 
 /** Filtros rápidos da central de notícias. */
-export type NewsFilter = "all" | "macro" | "acoes" | "global" | "rendafixa";
+export type NewsFilter = "all" | "macro" | "acoes" | "global" | "rendafixa" | "cripto";
 
 export type NewsImpact = "alto" | "medio" | "neutro";
 
@@ -64,6 +65,7 @@ export const NEWS_FILTERS: { id: NewsFilter; label: string }[] = [
   { id: "acoes", label: "B3 / Ações" },
   { id: "global", label: "EUA & Global" },
   { id: "rendafixa", label: "Renda Fixa / Câmbio" },
+  { id: "cripto", label: "Cripto" },
 ];
 
 /** Tons sóbrios que funcionam nos dois temas (texto na cor, fundo com 10% de opacidade). */
@@ -78,6 +80,7 @@ export const CATEGORY_COLORS: Record<NewsCategory, string> = {
   Empresas: "#059669",
   Commodities: "#CA8A04",
   Mercados: "#0D9488",
+  Cripto: "#EA580C",
   Economia: "#64748B",
 };
 

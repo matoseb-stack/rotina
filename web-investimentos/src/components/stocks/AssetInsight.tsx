@@ -18,7 +18,7 @@ const CONFIDENCE = { alta: "Notícias explicam bem o movimento", media: "Explica
  * "Por que está subindo/caindo hoje": resumo do Claude a partir da cotação,
  * do mercado, do setor e das manchetes, com links para as fontes citadas.
  */
-export function AssetInsight({ symbol }: { symbol: string }) {
+export function AssetInsight({ symbol, crypto = false }: { symbol: string; crypto?: boolean }) {
   const state = useAssetInsight(symbol);
   const now = useNow();
 
@@ -50,7 +50,7 @@ export function AssetInsight({ symbol }: { symbol: string }) {
         </span>
       </div>
       <h3 id="insight-title" className="mt-2 text-sm leading-snug font-semibold">
-        Por que {symbol} está {tone.label} hoje?
+        Por que {symbol} está {tone.label} {crypto ? "nas últimas 24 h" : "hoje"}?
       </h3>
       {ai && <p className="mt-1 text-sm font-medium">{insight.title}</p>}
       <p className="mt-1 text-sm text-muted">{insight.summary}</p>

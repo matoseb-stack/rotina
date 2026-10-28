@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useMarketData } from "@/hooks/useMarketData";
-import { decimal, fmt, money, signedMoney } from "@/lib/format";
+import { compactMoney, decimal, fmt, priceFormatter, signedMoney } from "@/lib/format";
 
 const compactFmt = new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 });
 const compact = (v: number) => compactFmt.format(v);
@@ -43,11 +43,17 @@ export function StockModal({ symbol, onClose }: StockModalProps) {
 function ModalBody({ symbol, onClose }: { symbol: string; onClose: () => void }) {
   // Seletor devolve o objeto do próprio snapshot: re-renderiza só quando o ativo muda.
   const quote = useMarketData(
-    (s: MarketSnapshot) => s.stocks.find((q) => q.symbol === symbol) ?? s.us.find((q) => q.symbol === symbol) ?? s.etfs.find((q) => q.symbol === symbol)!,
+    (s: MarketSnapshot) =>
+      s.stocks.find((q) => q.symbol === symbol) ??
+      s.us.find((q) => q.symbol === symbol) ??
+      s.etfs.find((q) => q.symbol === symbol) ??
+      s.crypto.find((q) => q.symbol === symbol)!,
   );
   const fxRate = useMarketData((s: MarketSnapshot) => s.fx.price);
+  const btcDominance = useMarketData((s: MarketSnapshot) => s.cryptoGlobal?.btcDominance ?? null);
   const usd = quote.currency === "USD";
-  const format = (v: number) => money(v, quote.currency);
+  const crypto = quote.kind === "crypto";
+  const format = priceFormatter(quote);
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -112,7 +118,8 @@ function ModalBody({ symbol, onClose }: { symbol: string; onClose: () => void })
             </h2>
             <p className="text-sm text-muted">
               <span className="font-medium text-fg">{quote.symbol}</span> · {quote.kind === "etf" ? `ETF · acompanha ${quote.sector}` : quote.sector}
-              {usd && " · NYSE/Nasdaq"}
+              {quote.market === "us" && " · NYSE/Nasdaq"}
+              {crypto && " · 24 h por dia"}
             </p>
           </div>
           <div className="hidden text-right sm:block">
@@ -121,6 +128,7 @@ function ModalBody({ symbol, onClose }: { symbol: string; onClose: () => void })
               <span className={cn("tnum text-sm", up ? "text-up" : "text-down")}>{signedMoney(quote.change, quote.currency)}</span>
               <ChangeChip value={quote.changePct} size="md" />
             </div>
+            {crypto && <p className="mt-0.5 text-[11px] text-subtle">variação em 24 h</p>}
             {usd && <p className="tnum mt-1 text-xs text-muted">≈ {fmt.brl(quote.price * fxRate)} · dólar a {fmt.brl(fxRate)}</p>}
           </div>
           <button
@@ -147,32 +155,39 @@ function ModalBody({ symbol, onClose }: { symbol: string; onClose: () => void })
             <div className="min-w-0 space-y-6">
               <StockChart quote={quote} />
 
-              <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
-                <Stat label="Abertura" value={format(quote.open)} hint="Primeiro preço negociado no dia." />
-                <Stat label="Mínima do dia" value={format(quote.dayLow)} hint="Menor preço negociado hoje." />
-                <Stat label="Máxima do dia" value={format(quote.dayHigh)} hint="Maior preço negociado hoje." />
-                <Stat label="Fech. anterior" value={format(quote.previousClose)} hint="Preço no fim do pregão anterior: base da variação do dia." />
-                <Stat
-                  label="Volume"
-                  value={quote.volume ? compact(quote.volume) : "—"}
-                  hint="Quantidade de ações negociadas hoje."
-                />
-                <Stat
-                  label="52 semanas"
-                  value={quote.fiftyTwoWeekLow && quote.fiftyTwoWeekHigh ? `${decimal(quote.fiftyTwoWeekLow)} – ${decimal(quote.fiftyTwoWeekHigh)}` : "—"}
-                  hint="Menor e maior preço do último ano."
-                />
-              </dl>
+              {crypto ? (
+                <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
+                  <Stat label="Capitalização de mercado" value={quote.marketCap ? compactMoney(quote.marketCap) : "—"} hint="Preço × moedas em circulação." />
+                  <Stat label="Volume em 24 h" value={quote.volume24h ? compactMoney(quote.volume24h) : "—"} hint="Valor negociado em todas as corretoras nas últimas 24 horas (CoinGecko)." />
+                  <Stat label="Dominância do Bitcoin" value={btcDominance !== null ? fmt.rate(btcDominance, 1) : "—"} hint="Fatia do bitcoin no valor de mercado de todas as criptomoedas." />
+                  <Stat label="Máxima 24 h" value={format(quote.dayHigh)} hint="Maior preço nas últimas 24 horas." />
+                  <Stat label="Mínima 24 h" value={format(quote.dayLow)} hint="Menor preço nas últimas 24 horas." />
+                  <Stat label="Ranking" value={quote.rank ? `#${quote.rank}` : "—"} hint="Posição por capitalização de mercado (CoinGecko)." />
+                </dl>
+              ) : (
+                <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
+                  <Stat label="Abertura" value={format(quote.open)} hint="Primeiro preço negociado no dia." />
+                  <Stat label="Mínima do dia" value={format(quote.dayLow)} hint="Menor preço negociado hoje." />
+                  <Stat label="Máxima do dia" value={format(quote.dayHigh)} hint="Maior preço negociado hoje." />
+                  <Stat label="Fech. anterior" value={format(quote.previousClose)} hint="Preço no fim do pregão anterior: base da variação do dia." />
+                  <Stat label="Volume" value={quote.volume ? compact(quote.volume) : "—"} hint="Quantidade de ações negociadas hoje." />
+                  <Stat
+                    label="52 semanas"
+                    value={quote.fiftyTwoWeekLow && quote.fiftyTwoWeekHigh ? `${decimal(quote.fiftyTwoWeekLow)} – ${decimal(quote.fiftyTwoWeekHigh)}` : "—"}
+                    hint="Menor e maior preço do último ano."
+                  />
+                </dl>
+              )}
 
               <div className="rounded-xl bg-surface-2 p-4">
-                <p className="text-sm font-semibold">{quote.kind === "etf" ? "Sobre o ETF" : "Sobre a empresa"}</p>
+                <p className="text-sm font-semibold">{quote.kind === "etf" ? "Sobre o ETF" : crypto ? "Sobre a criptomoeda" : "Sobre a empresa"}</p>
                 <p className="mt-1 text-sm text-muted">{quote.about}</p>
               </div>
             </div>
 
             <aside className="flex flex-col gap-5 lg:border-l lg:border-line lg:pl-6">
               {/* Antes das notícias: o resumo de por que o ativo sobe ou cai hoje. */}
-              <AssetInsight symbol={quote.symbol} />
+              <AssetInsight symbol={quote.symbol} crypto={crypto} />
               <AssetNews symbol={quote.symbol} market={quote.market} name={quote.name.replace(/ (ON|PN)$/, "")} />
             </aside>
           </div>

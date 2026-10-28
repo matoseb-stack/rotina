@@ -14,8 +14,9 @@ export function AssetNews({ symbol, name, market }: { symbol: string; name: stri
   const now = useNow();
   const feed = state.status === "ready" ? state.feed : null;
   const global = market === "us";
+  const crypto = market === "crypto";
   const moreUrl = feed?.moreUrl ?? assetMoreUrl(symbol, market, DETAIL_SEEDS.find((s) => s.symbol === symbol)?.newsQuery);
-  const moreLabel = feed?.moreLabel ?? (global ? "Mais notícias no Google News" : "Mais notícias na Folha");
+  const moreLabel = feed?.moreLabel ?? (global ? "Mais notícias no Google News" : crypto ? "Mais notícias na Cointelegraph Brasil" : "Mais notícias na Folha");
   const items = feed?.items ?? [];
 
   return (
@@ -24,7 +25,7 @@ export function AssetNews({ symbol, name, market }: { symbol: string; name: stri
         <h3 id="asset-news-title" className="text-sm font-semibold">
           Notícias {global && <span className="ml-1 rounded bg-surface-2 px-1 py-px text-[10px] font-medium text-muted">EN</span>}
         </h3>
-        <span className="truncate text-xs text-subtle">{feed?.sourceLabel ?? (global ? "Imprensa global" : "Folha de S.Paulo")}</span>
+        <span className="truncate text-xs text-subtle">{feed?.sourceLabel ?? (global ? "Imprensa global" : crypto ? "Portais de cripto" : "Folha de S.Paulo")}</span>
       </div>
 
       {state.status === "loading" && (

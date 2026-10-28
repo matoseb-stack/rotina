@@ -2,25 +2,27 @@
 
 import { memo } from "react";
 import { useMarketData } from "@/hooks/useMarketData";
-import { fmt, indexValue } from "@/lib/format";
+import { fmt, indexValue, money } from "@/lib/format";
 import type { Quote } from "@/lib/market/types";
 import { ChangeChip } from "@/components/ui/ChangeChip";
 import { LivePrice } from "@/components/ui/LivePrice";
 
-/** Faixa compacta com Ibovespa, S&P 500, Nasdaq e dólar (cotações reais). */
+/** Faixa compacta com Ibovespa, S&P 500, Nasdaq, dólar e bitcoin (ao vivo). */
 export function MarketStrip() {
   const index = useMarketData((s) => s.index);
   const global = useMarketData((s) => s.global);
   const fx = useMarketData((s) => s.fx);
+  const btc = useMarketData((s) => s.crypto[0]);
   const status = useMarketData((s) => s.status);
   if (status === "loading") return <div className="mb-5 h-12 animate-pulse rounded-xl bg-surface-2" />;
   return (
-    <div className="no-scrollbar -mx-4 mb-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-4 sm:px-0">
+    <div className="no-scrollbar -mx-4 mb-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 lg:grid-cols-5">
       <Tile label="Ibovespa" quote={index} format={fmt.points} />
       {global.map((q) => (
         <Tile key={q.symbol} label={q.name} quote={q} format={indexValue} />
       ))}
       <Tile label="Dólar" quote={fx} format={(v) => fmt.brl(v)} />
+      <Tile label="Bitcoin · 24h" quote={btc} format={(v) => money(v, "USD")} />
     </div>
   );
 }

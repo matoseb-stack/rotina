@@ -73,3 +73,15 @@ export const money = (v: number, c: "BRL" | "USD" = "BRL") => (c === "USD" ? usd
 export const signedMoney = (v: number, c: "BRL" | "USD" = "BRL") => `${v >= 0 ? "+" : "−"}${money(Math.abs(v), c)}`;
 /** Índices americanos com duas casas ("7.732,60"). */
 export const indexValue = (v: number) => indexPoints.format(v);
+
+const usd4 = new Intl.NumberFormat(LOCALE, { style: "currency", currency: "USD", minimumFractionDigits: 4, maximumFractionDigits: 4 });
+const compactUsd = new Intl.NumberFormat(LOCALE, { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 2 });
+
+/** Preço no formato do ativo: cripto abaixo de US$ 10 (ADA, XRP, stablecoins) leva 4 casas. */
+export function priceFormatter(q: { currency: "BRL" | "USD"; kind: string }): (v: number) => string {
+  if (q.kind === "crypto") return (v) => (Math.abs(v) < 10 ? usd4.format(v) : usd.format(v));
+  return (v) => money(v, q.currency);
+}
+
+/** "US$ 1,63 tri" para capitalização e volume. */
+export const compactMoney = (v: number) => compactUsd.format(v);

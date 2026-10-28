@@ -8,6 +8,8 @@ export interface NewsSourceDef {
   /** Texto curto do selo (quando o ícone do site não carrega). */
   short: string;
   region: "br" | "intl";
+  /** Portal especializado em cripto: notícias entram no filtro "Cripto". */
+  crypto?: boolean;
   lang: "pt" | "en";
   color: string;
   /** Domínio oficial: valida links e busca o ícone do site. */
@@ -19,6 +21,8 @@ export interface NewsSourceDef {
   googleNews?: string;
   /** Observação exibida na interface (ex.: limitações da fonte). */
   note?: string;
+  /** Idade máxima das manchetes, em dias (padrão: 4). Para veículos que publicam pouco. */
+  maxAgeDays?: number;
 }
 
 const gnews = (q: string) => `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`;
@@ -69,6 +73,20 @@ export const NEWS_SOURCES: NewsSourceDef[] = [
   {
     id: "wsj", name: "Wall Street Journal", short: "WSJ", region: "intl", lang: "en", color: "#222222",
     domain: "wsj.com", homepage: "https://www.wsj.com/finance", feeds: ["https://feeds.content.dowjones.io/public/rss/RSSMarketsMain"],
+  },
+  {
+    id: "coindesk", name: "CoinDesk", short: "CD", region: "intl", lang: "en", color: "#1A1A1A", crypto: true,
+    domain: "coindesk.com", homepage: "https://www.coindesk.com/", feeds: ["https://www.coindesk.com/arc/outboundfeeds/rss"],
+  },
+  {
+    id: "cointelegraph", name: "Cointelegraph Brasil", short: "CT", region: "br", lang: "pt", color: "#1D1D1B", crypto: true,
+    domain: "cointelegraph.com.br", homepage: "https://cointelegraph.com.br/", feeds: ["https://cointelegraph.com.br/rss"],
+  },
+  {
+    id: "criptofacil", name: "CriptoFácil", short: "CF", region: "br", lang: "pt", color: "#0B7A3E", crypto: true,
+    domain: "criptofacil.com", homepage: "https://www.criptofacil.com/", feeds: ["https://www.criptofacil.com/feed/"],
+    maxAgeDays: 45,
+    note: "A CriptoFácil está publicando pouco: o feed oficial não traz matérias novas desde o fim de setembro de 2026, por isso as manchetes dela podem ser antigas.",
   },
 ];
 

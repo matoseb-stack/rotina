@@ -51,7 +51,7 @@ export function MissedTodayModal({ open, onOpenChange, onSeeNews }: MissedTodayM
 }
 
 const TONE = { up: "bg-up-soft text-up", down: "bg-down-soft text-down", neutral: "bg-accent-soft text-accent" } as const;
-const ICON = { b3: "chart", us: "globe", fx: "arrow-up", policy: "bolt" } as const;
+const ICON = { macro: "bolt", b3: "chart", us: "globe", crypto: "coin" } as const;
 
 function Body({ feed, onClose, onSeeNews }: { feed: ReturnType<typeof useNewsFeed>["feed"]; onClose: () => void; onSeeNews: () => void }) {
   // Lido uma vez ao abrir: o resumo não muda enquanto a pessoa lê.
@@ -88,7 +88,7 @@ function Body({ feed, onClose, onSeeNews }: { feed: ReturnType<typeof useNewsFee
           </span>
           <div className="min-w-0 flex-1">
             <h2 id="missed-title" className="text-lg font-semibold">O que você perdeu hoje</h2>
-            <p className="text-xs text-muted first-letter:uppercase">{fmt.fullDate(Date.now()).replace(/ às.*$/, "")} · desde o último fechamento</p>
+            <p className="text-xs text-muted first-letter:uppercase">{fmt.fullDate(Date.now()).replace(/ às.*$/, "")} · macro, B3, EUA e cripto</p>
           </div>
           <button ref={closeRef} type="button" onClick={onClose} className="-mt-1 -mr-1 rounded-lg p-2 text-muted hover:bg-surface-2 hover:text-fg" aria-label="Fechar resumo">
             <Icon name="close" />
@@ -104,9 +104,18 @@ function Body({ feed, onClose, onSeeNews }: { feed: ReturnType<typeof useNewsFee
               <div className="min-w-0">
                 <p className="text-sm font-semibold">{p.title}</p>
                 <p className="text-sm text-muted">{p.text}</p>
-                {p.link && (
-                  <a href={p.link.url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline">
-                    {p.link.label} <Icon name="external" className="size-3" />
+                {p.headline && (
+                  <a
+                    href={p.headline.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group mt-1.5 block rounded-lg border border-line bg-surface-2 px-2.5 py-1.5 text-xs hover:border-line-strong"
+                  >
+                    <span className="flex items-center gap-1 text-subtle">
+                      {p.headline.source} · {fmt.relative(p.headline.publishedAt, Date.now())}
+                      <Icon name="external" className="size-3" />
+                    </span>
+                    <span className="mt-0.5 line-clamp-2 font-medium text-fg group-hover:text-accent">{p.headline.title}</span>
                   </a>
                 )}
               </div>
@@ -130,7 +139,7 @@ function Body({ feed, onClose, onSeeNews }: { feed: ReturnType<typeof useNewsFee
           </button>
         </div>
         <p className="px-5 pb-4 text-[11px] text-subtle">
-          Resumo automático com cotações reais (Yahoo Finance, Banco Central) e manchetes da central de notícias.
+          Resumo automático com cotações reais (Yahoo Finance, Coinbase, CoinGecko, Banco Central) e a manchete mais relevante de cada tema.
         </p>
       </motion.div>
     </motion.div>

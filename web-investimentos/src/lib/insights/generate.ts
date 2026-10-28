@@ -2,12 +2,12 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
-import { fetchYahooChart } from "../market/real/yahoo";
-import { quoteFromYahoo, QUOTES_REVALIDATE } from "../market/real/market";
-import { DETAIL_SEEDS, FX_SEED, GLOBAL_INDEX_SEEDS, INDEX_SEED } from "../market/seeds";
+import { fetchSeedQuote } from "../market/real/market";
+import { CRYPTO_SEEDS, DETAIL_SEEDS, FX_SEED, GLOBAL_INDEX_SEEDS, INDEX_SEED } from "../market/seeds";
 import type { Quote, StockSeed } from "../market/types";
 import { fetchAllNews } from "../news/aggregate";
 import { fetchCompanyNews } from "../news/companies";
+import { fetchCryptoAssetNews } from "../news/crypto-assets";
 import { fetchGlobalAssetNews } from "../news/global-assets";
 import type { AssetInsight, InsightSource } from "./types";
 
@@ -34,9 +34,9 @@ const InsightSchema = z.object({
   confidence: z.enum(["alta", "media", "baixa"]).describe("Quão bem as manchetes explicam o movimento"),
 });
 
-const SYSTEM = `Você é um analista de mercado que explica, em português do Brasil e para investidores pessoa física, por que uma ação ou ETF está subindo ou caindo hoje.
+const SYSTEM = `Você é um analista de mercado que explica, em português do Brasil e para investidores pessoa física, por que uma ação, ETF ou criptoativo está subindo ou caindo (ações e ETFs: no dia; cripto: nas últimas 24 h).
 
-Use apenas os dados fornecidos: cotação, índice de referência, dólar, ações do mesmo setor e manchetes numeradas. Cite as manchetes pelo número quando elas sustentarem um fator. Se nenhuma manchete explica o movimento, diga isso com clareza e explique pelo que os números mostram (acompanha o índice, o setor ou o dólar; movimento isolado sem notícia identificada). Não invente fatos, números ou notícias que não estejam nos dados.
+Use apenas os dados fornecidos: cotação, referência (índice ou bitcoin), dólar, ativos parecidos e manchetes numeradas. Cite as manchetes pelo número quando elas sustentarem um fator. Se nenhuma manchete explica o movimento, diga isso com clareza e explique pelo que os números mostram (acompanha o índice, o bitcoin, o setor ou o dólar; movimento isolado sem notícia identificada). Em stablecoins, explique variações pela paridade com o dólar. Não invente fatos, números ou notícias que não estejam nos dados.
 
 Seja direto e didático: frases curtas, sem jargão desnecessário. Não faça recomendação de compra ou venda nem previsão de preço.`;
 
@@ -44,7 +44,7 @@ const pct = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(2).replace(".", ",")
 
 async function quoteOf(seed: StockSeed): Promise<Quote | null> {
   try {
-    return quoteFromYahoo(seed, await fetchYahooChart(seed, "1d", "5m", QUOTES_REVALIDATE));
+    return (await fetchSeedQuote(seed)).quote;
   } catch {
     return null;
   }
@@ -63,14 +63,20 @@ interface Context {
 
 async function buildContext(seed: StockSeed): Promise<Context | null> {
   const us = seed.market === "us";
-  const benchmarkSeed = us ? GLOBAL_INDEX_SEEDS[0] : INDEX_SEED;
-  const peerSeeds = DETAIL_SEEDS.filter((s) => s.symbol !== seed.symbol && s.sector === seed.sector && s.market === seed.market).slice(0, 3);
+  const crypto = seed.market === "crypto";
+  // Cripto: o bitcoin é a referência das demais moedas; para o próprio BTC, o Nasdaq.
+  const btc = CRYPTO_SEEDS[0];
+  const benchmarkSeed = crypto ? (seed.symbol === btc.symbol ? GLOBAL_INDEX_SEEDS[1] : btc) : us ? GLOBAL_INDEX_SEEDS[0] : INDEX_SEED;
+  const isStable = (s: StockSeed) => s.sector === "Stablecoin";
+  const peerSeeds = crypto
+    ? CRYPTO_SEEDS.filter((s) => s.symbol !== seed.symbol && s.symbol !== benchmarkSeed.symbol && isStable(s) === isStable(seed)).slice(0, 3)
+    : DETAIL_SEEDS.filter((s) => s.symbol !== seed.symbol && s.sector === seed.sector && s.market === seed.market).slice(0, 3);
   const [quote, benchmark, fx, peers, assetNews, market] = await Promise.all([
     quoteOf(seed),
     quoteOf(benchmarkSeed),
     quoteOf(FX_SEED),
     Promise.all(peerSeeds.map(quoteOf)),
-    us ? fetchGlobalAssetNews(seed.symbol) : fetchCompanyNews(seed.symbol),
+    crypto ? fetchCryptoAssetNews(seed.symbol) : us ? fetchGlobalAssetNews(seed.symbol) : fetchCompanyNews(seed.symbol),
     fetchAllNews().catch(() => null),
   ]);
   if (!quote || quote.stale) return null;
@@ -85,7 +91,8 @@ async function buildContext(seed: StockSeed): Promise<Context | null> {
   };
   for (const it of assetNews.items.slice(0, 8)) add(it.title, it.url, it.source ?? assetNews.sourceLabel, it.publishedAt, it.summary);
   // Contexto macro: manchetes recentes de alto impacto da região do ativo.
-  for (const it of (market?.items ?? []).filter((i) => !i.simulated && i.impact === "alto" && (us ? i.filter === "global" : i.filter !== "global")).slice(0, 6)) {
+  const regional = (f: string) => (crypto ? f === "cripto" : us ? f === "global" : f !== "global" && f !== "cripto");
+  for (const it of (market?.items ?? []).filter((i) => !i.simulated && i.impact !== "neutro" && regional(i.filter)).slice(0, 6)) {
     add(it.title, it.url, it.source.name, it.publishedAt, it.summary);
   }
   return { seed, quote, benchmark, fx, peers: peers.filter((p): p is Quote => p !== null && !p.stale), headlines, headlineLines };
@@ -95,15 +102,19 @@ function promptFor(c: Context): string {
   const q = c.quote;
   const money = (v: number) => `${q.currency === "USD" ? "US$" : "R$"} ${v.toFixed(2).replace(".", ",")}`;
   const lines = [
-    `Ativo: ${q.symbol} — ${q.name} (${q.kind === "etf" ? `ETF que acompanha ${q.sector}` : `setor: ${q.sector}`}; ${q.market === "us" ? "bolsa dos EUA" : "B3"})`,
-    `Hoje: ${pct(q.changePct)} (${money(q.price)}; fechamento anterior ${money(q.previousClose)}; abertura ${money(q.open)}; mínima ${money(q.dayLow)}; máxima ${money(q.dayHigh)})`,
+    `Ativo: ${q.symbol} — ${q.name} (${q.kind === "etf" ? `ETF que acompanha ${q.sector}` : q.kind === "crypto" ? `criptoativo, categoria: ${q.sector}` : `setor: ${q.sector}`}; ${q.market === "us" ? "bolsa dos EUA" : q.market === "crypto" ? "negociado 24 h por dia" : "B3"})`,
+    q.kind === "crypto"
+      ? `Últimas 24 h: ${pct(q.changePct)} (${money(q.price)}; preço 24 h atrás ${money(q.previousClose)}; mínima ${money(q.dayLow)}; máxima ${money(q.dayHigh)})`
+      : `Hoje: ${pct(q.changePct)} (${money(q.price)}; fechamento anterior ${money(q.previousClose)}; abertura ${money(q.open)}; mínima ${money(q.dayLow)}; máxima ${money(q.dayHigh)})`,
     q.fiftyTwoWeekLow && q.fiftyTwoWeekHigh ? `Faixa de 52 semanas: ${money(q.fiftyTwoWeekLow)} a ${money(q.fiftyTwoWeekHigh)}` : "",
-    c.benchmark ? `${c.benchmark.name} hoje: ${pct(c.benchmark.changePct)}` : "",
+    c.benchmark ? `${c.benchmark.name} ${c.benchmark.kind === "crypto" ? "nas últimas 24 h" : "hoje"}: ${pct(c.benchmark.changePct)}` : "",
     c.fx ? `Dólar (USD/BRL) hoje: ${pct(c.fx.changePct)}` : "",
-    c.peers.length ? `Mesmo setor: ${c.peers.map((p) => `${p.symbol} ${pct(p.changePct)}`).join("; ")}` : "Mesmo setor: sem pares acompanhados.",
+    c.peers.length
+      ? `${q.kind === "crypto" ? "Outras criptomoedas" : "Mesmo setor"}: ${c.peers.map((p) => `${p.symbol} ${pct(p.changePct)}`).join("; ")}`
+      : "Mesmo setor: sem pares acompanhados.",
     "Manchetes (as primeiras são sobre o ativo; as últimas, contexto de mercado):",
     ...(c.headlineLines.length ? c.headlineLines : ["(nenhuma manchete disponível)"]),
-    `Explique por que ${q.symbol} está ${q.changePct > 0.15 ? "subindo" : q.changePct < -0.15 ? "caindo" : "estável"} hoje.`,
+    `Explique por que ${q.symbol} está ${q.changePct > 0.15 ? "subindo" : q.changePct < -0.15 ? "caindo" : "estável"} ${q.kind === "crypto" ? "nas últimas 24 h" : "hoje"}.`,
   ];
   return lines.filter(Boolean).join("\n");
 }
@@ -113,19 +124,21 @@ function autoInsight(c: Context, notice: string): AssetInsight {
   const q = c.quote;
   const direction = q.changePct > 0.15 ? "alta" : q.changePct < -0.15 ? "queda" : "estavel";
   const verb = direction === "alta" ? "sobe" : direction === "queda" ? "cai" : "fica estável";
-  const parts = [`${q.symbol} ${verb}${direction === "estavel" ? "" : ` ${pct(Math.abs(q.changePct)).replace("+", "")}`} hoje.`];
+  const when = q.kind === "crypto" ? "em 24 h" : "hoje";
+  const parts = [`${q.symbol} ${verb}${direction === "estavel" ? "" : ` ${pct(Math.abs(q.changePct)).replace("+", "")}`} ${when}.`];
   if (c.benchmark) {
     const diff = q.changePct - c.benchmark.changePct;
     const same = Math.sign(q.changePct) === Math.sign(c.benchmark.changePct);
     parts.push(
       Math.abs(diff) < 0.5 && same
         ? `O movimento acompanha o ${c.benchmark.name} (${pct(c.benchmark.changePct)}).`
-        : `O ${c.benchmark.name} varia ${pct(c.benchmark.changePct)}, então o ativo ${diff > 0 ? "vai melhor" : "vai pior"} que o mercado.`,
+        : `O ${c.benchmark.name} varia ${pct(c.benchmark.changePct)}, então o ativo ${diff > 0 ? "vai melhor" : "vai pior"} que ${c.benchmark.kind === "crypto" ? "o bitcoin" : "o mercado"}.`,
     );
   }
   const peersSame = c.peers.filter((p) => Math.sign(p.changePct) === Math.sign(q.changePct));
   if (c.peers.length && peersSame.length === c.peers.length) {
-    parts.push(`O setor vai na mesma direção: ${c.peers.map((p) => `${p.symbol} ${pct(p.changePct)}`).join(", ")}.`);
+    const group = q.kind === "crypto" ? "As outras criptomoedas vão" : "O setor vai";
+    parts.push(`${group} na mesma direção: ${c.peers.map((p) => `${p.symbol} ${pct(p.changePct)}`).join(", ")}.`);
   }
   const drivers = c.headlines.slice(0, 2).map((h) => ({ text: `Manchete recente: ${h.title}`, sources: [h] }));
   return {
