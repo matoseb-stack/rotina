@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fichário de Pessoas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Fichário de biblioteca: fichas catalográficas com aba de índice; busca no topo, gaveta de fichas embaixo. */
+  :root {
+    --paper: #e8ebe6;
+    --card: #fbfcf9;
+    --ink: #1c2430;
+    --muted: #5d6873;
+    --rule: #c9d0cb;
+    --accent: #2c5a86;
+    --tab: #c8a12a;
+    --danger: #a3372b;
+    --display: "Young Serif", Georgia, "Times New Roman", serif;
+    --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #151a1f; --card: #1e252c; --ink: #e6ebe8; --muted: #9aa6ae;
+      --rule: #34404a; --accent: #7fb0de; --tab: #d9b44a; --danger: #e0786b;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #151a1f; --card: #1e252c; --ink: #e6ebe8; --muted: #9aa6ae;
+    --rule: #34404a; --accent: #7fb0de; --tab: #d9b44a; --danger: #e0786b;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px); }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font: 15px/1.55 var(--body);
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding-block: 32px 64px; display: grid; gap: 28px; }
+
+  header { display: grid; gap: 6px; }
+  .eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  h1 { font: 400 clamp(32px, 6vw, 52px)/1.05 var(--display); margin: 0; text-wrap: balance; }
+  .lede { margin: 0; color: var(--muted); max-width: 62ch; }
+
+  form.busca { display: grid; gap: 12px; }
+  .barra { display: flex; gap: 8px; flex-wrap: wrap; }
+  .barra input[type=search] {
+    flex: 1 1 260px; min-width: 0; font: 400 18px/1.2 var(--body); color: var(--ink);
+    background: var(--card); border: 1.5px solid var(--rule); border-radius: 4px; padding: 14px 16px;
+  }
+  .barra input:focus-visible, button:focus-visible, select:focus-visible, .ficha:focus-visible, a:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  button {
+    font: 600 14px/1 var(--body); cursor: pointer; border-radius: 4px; padding: 12px 18px;
+    border: 1.5px solid var(--accent); background: var(--accent); color: var(--card);
+  }
+  button.sec { background: transparent; color: var(--accent); }
+  button:disabled { opacity: .55; cursor: progress; }
+  .opcoes { display: flex; gap: 16px 20px; flex-wrap: wrap; align-items: center; font-size: 14px; color: var(--muted); }
+  .opcoes label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+  select { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--rule); border-radius: 4px; padding: 4px 6px; }
+  .exemplos { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--muted); }
+  .chip { font: 500 13px/1 var(--body); padding: 7px 10px; border-radius: 999px; background: transparent; color: var(--ink); border: 1px solid var(--rule); }
+
+  .status { font: 400 13px/1.4 var(--mono); color: var(--muted); min-height: 1.4em; }
+  .status.erro { color: var(--danger); }
+
+  .gaveta { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+  .ficha {
+    position: relative; display: grid; grid-template-rows: auto 1fr; text-align: left; padding: 0;
+    background: var(--card); color: var(--ink); border: 1px solid var(--rule); border-radius: 3px;
+    cursor: pointer; font: inherit; overflow: hidden; transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .ficha:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgb(0 0 0 / .08); }
+  .ficha .aba {
+    position: absolute; top: 0; right: 14px; background: var(--tab); color: #1c2430;
+    font: 500 11px/1 var(--mono); padding: 6px 8px 7px; border-radius: 0 0 3px 3px; letter-spacing: .06em;
+  }
+  .foto { aspect-ratio: 4 / 5; max-width: 100%; background: var(--paper); display: grid; place-items: center; overflow: hidden; }
+  .foto img { width: 100%; height: 100%; object-fit: cover; object-position: top; filter: saturate(.9); }
+  .foto .inicial { font: 400 64px/1 var(--display); color: var(--muted); }
+  .ficha .txt { padding: 12px 14px 16px; display: grid; gap: 8px; align-content: start; min-width: 0; border-top: 3px double var(--rule); }
+  .ficha h3 { margin: 0; font: 400 19px/1.2 var(--display); padding-bottom: 8px; border-bottom: 1px solid var(--rule); }
+  .ficha .desc { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.45; }
+
+  .vazio { border: 1.5px dashed var(--rule); border-radius: 4px; padding: 28px; color: var(--muted); text-align: center; }
+
+  dialog {
+    width: min(760px, calc(100vw - 32px)); max-height: calc(100vh - 48px); padding: 0; border: 1px solid var(--rule);
+    border-radius: 4px; background: var(--card); color: var(--ink);
+  }
+  dialog::backdrop { background: rgb(10 15 20 / .55); }
+  .det { display: grid; grid-template-columns: 220px 1fr; gap: 24px; padding: 24px; }
+  .det .foto { border-radius: 2px; }
+  .det h2 { margin: 0 0 4px; font: 400 30px/1.1 var(--display); text-wrap: balance; }
+  .det .sub { margin: 0 0 14px; color: var(--muted); }
+  .det .col { min-width: 0; display: grid; gap: 16px; align-content: start; }
+  .fatos { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 0; font-size: 14px; }
+  .fatos dt { font: 500 11px/1.9 var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .fatos dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+  .bio { margin: 0; max-width: 65ch; }
+  .ia { border-top: 1px solid var(--rule); padding-top: 14px; display: grid; gap: 10px; }
+  .ia h4 { margin: 0; font: 500 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+  .ia .resp { white-space: pre-wrap; margin: 0; }
+  .links { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; }
+  a { color: var(--accent); }
+  .fechar { position: sticky; top: 0; display: flex; justify-content: flex-end; padding: 10px 12px 0; background: var(--card); }
+  .fechar button { padding: 8px 12px; }
+
+  details.chave { background: var(--card); border: 1px solid var(--rule); border-radius: 4px; padding: 12px 16px; font-size: 14px; }
+  details.chave summary { cursor: pointer; font-weight: 600; }
+  details.chave .linha { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  details.chave input { flex: 1 1 240px; min-width: 0; font: 400 14px var(--mono); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 4px; padding: 10px; }
+  .nota { color: var(--muted); font-size: 13px; margin: 8px 0 0; max-width: 72ch; }
+
+  footer { font-size: 13px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 16px; }
+  footer p { margin: 0 0 6px; max-width: 80ch; }
+
+  @media (max-width: 600px) {
+    .det { grid-template-columns: 1fr; padding: 16px; }
+    .det .foto { max-width: 220px; }
+    .gaveta { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .ficha { transition: none; } .ficha:hover { transform: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Catálogo de pessoas públicas · Wikipedia + Wikidata</span>
+    <h1>Fichário de Pessoas</h1>
+    <p class="lede">Procure artistas, atletas, cientistas, políticos e outras figuras públicas pelo nome ou descrevendo quem você procura. Cada ficha traz foto, dados principais e um resumo feito por IA.</p>
+  </header>
+
+  <form class="busca" id="form-busca" autocomplete="off">
+    <div class="barra">
+      <input type="search" id="q" placeholder="Ex.: Tarsila do Amaral" aria-label="Pesquisar pessoa">
+      <button type="submit" id="btn-buscar">Pesquisar</button>
+    </div>
+    <div class="opcoes">
+      <label><input type="radio" name="modo" id="modo-nome" value="nome" checked> Por nome</label>
+      <label><input type="radio" name="modo" id="modo-ia" value="ia"> Descrever com IA</label>
+      <label>Wikipedia
+        <select id="lang">
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+        </select>
+      </label>
+    </div>
+    <div class="exemplos" id="exemplos">
+      <span>Experimente:</span>
+    </div>
+  </form>
+
+  <details class="chave" id="chave-box">
+    <summary>Ativar a IA (chave da API do Claude)</summary>
+    <div class="linha">
+      <input type="password" id="api-key" placeholder="sk-ant-…" aria-label="Chave da API Anthropic">
+      <button type="button" class="sec" id="salvar-chave">Salvar neste navegador</button>
+      <button type="button" class="sec" id="apagar-chave">Apagar</button>
+    </div>
+    <p class="nota" id="chave-status">A busca por nome funciona sem chave. Para o resumo e a busca por descrição, cole uma chave de console.anthropic.com. Ela fica guardada só neste navegador e é enviada apenas para a API da Anthropic.</p>
+  </details>
+
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+  <section class="gaveta" id="gaveta" aria-label="Resultados"></section>
+
+  <footer>
+    <p>Os dados e as fotos vêm da Wikipedia e do Wikimedia Commons, sob as licenças de cada arquivo. Abra a página original para ver autoria e licença.</p>
+    <p>O fichário só mostra pessoas com verbete na Wikipedia. Ele não faz reconhecimento facial nem procura dados de pessoas comuns.</p>
+  </footer>
+</div>
+
+<dialog id="detalhe" aria-labelledby="det-nome">
+  <div class="fechar"><button type="button" class="sec" id="fechar">Fechar</button></div>
+  <div class="det">
+    <div class="foto" id="det-foto"></div>
+    <div class="col">
+      <div>
+        <h2 id="det-nome"></h2>
+        <p class="sub" id="det-desc"></p>
+        <p class="bio" id="det-bio"></p>
+      </div>
+      <dl class="fatos" id="det-fatos"></dl>
+      <div class="links" id="det-links"></div>
+      <div class="ia">
+        <h4>Resumo por IA</h4>
+        <p class="resp" id="det-ia">Toque em “Gerar resumo” para um panorama curto, escrito a partir do verbete.</p>
+        <div><button type="button" id="btn-resumo">Gerar resumo</button></div>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+    del(k) { try { localStorage.removeItem(k); } catch {} },
+  };
+
+  const EXEMPLOS = {
+    nome: ["Tarsila do Amaral", "Ayrton Senna", "Marie Curie", "Machado de Assis"],
+    ia: ["pintora modernista brasileira", "cientistas que ganharam dois prêmios Nobel", "tenistas brasileiros campeões de Grand Slam"],
+  };
+
+  // Propriedades do Wikidata mostradas na ficha.
+  const FATOS = [
+    ["P569", "Nascimento", "data"],
+    ["P19", "Local", "item"],
+    ["P570", "Morte", "data"],
+    ["P20", "Local da morte", "item"],
+    ["P27", "Nacionalidade", "item"],
+    ["P106", "Ocupação", "item"],
+    ["P69", "Formação", "item"],
+    ["P166", "Prêmios", "item"],
+  ];
+  const MAX_ITENS = 4;
+
+  let ultimaPessoa = null;
+
+  // ---------- Wikipedia / Wikidata ----------
+  const lang = () => $("lang").value;
+  const wpApi = (params) =>
+    `https://${lang()}.wikipedia.org/w/api.php?` + new URLSearchParams({ format: "json", formatversion: "2", origin: "*", ...params });
+
+  // A Wikimedia limita pedidos seguidos (429); espera um pouco e tenta de novo antes de desistir.
+  async function getJSON(url, tentativas = 3) {
+    for (let t = 0; ; t++) {
+      const r = await fetch(url);
+      if (r.ok) return r.json();
+      if (r.status !== 429 || t >= tentativas - 1) {
+        throw new Error(r.status === 429
+          ? "A Wikipedia está recebendo pedidos demais agora. Espere um minuto e pesquise de novo."
+          : `A Wikipedia respondeu com erro ${r.status}. Tente de novo em alguns segundos.`);
+      }
+      await new Promise((ok) => setTimeout(ok, 1500 * (t + 1)));
+    }
+  }
+
+  async function buscarWikipedia(texto, limite = 12) {
+    const d = await getJSON(wpApi({
+      action: "query", generator: "search", gsrsearch: texto, gsrlimit: String(limite),
+      prop: "pageimages|pageprops|description", piprop: "thumbnail", pithumbsize: "500",
+      ppprop: "wikibase_item",
+    }));
+    const pages = (d.query?.pages ?? []).sort((a, b) => a.index - b.index);
+    return pages.map((p) => ({
+      titulo: p.title, desc: p.description ?? "", foto: p.thumbnail?.source ?? "",
+      qid: p.pageprops?.wikibase_item ?? "",
+    }));
+  }
+
+  async function wikidata(ids, props) {
+    if (!ids.length) return {};
+    const out = {};
+    for (let i = 0; i < ids.length; i += 50) {
+      const d = await getJSON("https://www.wikidata.org/w/api.php?" + new URLSearchParams({
+        action: "wbgetentities", ids: ids.slice(i, i + 50).join("|"), props,
+        languages: `${lang()}|en`, format: "json", origin: "*",
+      }));
+      Object.assign(out, d.entities ?? {});
+    }
+    return out;
+  }
+
+  // Mantém só verbetes de seres humanos (P31 = Q5).
+  async function somenteHumanos(itens) {
+    const ids = [...new Set(itens.map((i) => i.qid).filter(Boolean))];
+    const ents = await wikidata(ids, "claims");
+    return itens.filter((i) => (ents[i.qid]?.claims?.P31 ?? []).some((c) => c.mainsnak?.datavalue?.value?.id === "Q5"));
+  }
+
+  const rotulo = (ent) => ent?.labels?.[lang()]?.value ?? ent?.labels?.en?.value ?? "";
+
+  function formatarData(v) {
+    const m = /^([+-])(\d+)-(\d\d)-(\d\d)/.exec(v?.time ?? "");
+    if (!m) return "";
+    const ano = Number(m[2]) * (m[1] === "-" ? -1 : 1);
+    const anoTxt = ano < 0 ? `${-ano} a.C.` : String(ano);
+    if (v.precision >= 11 && m[3] !== "00") {
+      const dt = new Date(Date.UTC(2000, Number(m[3]) - 1, Number(m[4])));
+      return dt.toLocaleDateString(lang(), { day: "numeric", month: "long", timeZone: "UTC" }) + " de " + anoTxt;
+    }
+    return anoTxt;
+  }
+
+  async function carregarDetalhe(item) {
+    const [extrato, ents] = await Promise.all([
+      getJSON(wpApi({ action: "query", prop: "extracts", exintro: "1", explaintext: "1", titles: item.titulo, redirects: "1" })),
+      item.qid ? wikidata([item.qid], "claims|sitelinks") : Promise.resolve({}),
+    ]);
+    const bio = extrato.query?.pages?.[0]?.extract ?? "";
+    const claims = ents[item.qid]?.claims ?? {};
+
+    const refs = new Set();
+    for (const [p, , tipo] of FATOS) {
+      if (tipo === "item") (claims[p] ?? []).slice(0, MAX_ITENS).forEach((c) => { const id = c.mainsnak?.datavalue?.value?.id; if (id) refs.add(id); });
+    }
+    const nomes = await wikidata([...refs], "labels");
+
+    const fatos = [];
+    for (const [p, rot, tipo] of FATOS) {
+      const vals = (claims[p] ?? []).filter((c) => c.rank !== "deprecated").slice(0, MAX_ITENS)
+        .map((c) => tipo === "data" ? formatarData(c.mainsnak?.datavalue?.value) : rotulo(nomes[c.mainsnak?.datavalue?.value?.id]))
+        .filter(Boolean);
+      if (vals.length) fatos.push([rot, [...new Set(vals)].join(", ")]);
+    }
+    const site = claims.P856?.[0]?.mainsnak?.datavalue?.value ?? "";
+    return { ...item, bio, fatos, site };
+  }
+
+  // ---------- Claude ----------
+  // Página estática sem build: chama a Messages API direto com fetch, com a chave que a pessoa colou.
+  async function claude(system, texto, maxTokens = 2000) {
+    const chave = store.get("anthropic_key");
+    if (!chave) throw new Error("Cole sua chave da API em “Ativar a IA” para usar este recurso.");
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-api-key": chave,
+        "anthropic-version": "2023-06-01",
+        "anthropic-beta": "server-side-fallback-2026-07-01",
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: "claude-opus-5-5",
+        max_tokens: maxTokens,
+        output_config: { effort: "low" },
+        fallbacks: "default",
+        system,
+        messages: [{ role: "user", content: texto }],
+      }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      if (r.status === 401) throw new Error("A chave da API não foi aceita. Confira se copiou a chave inteira.");
+      if (r.status === 429) throw new Error("Limite de uso da API atingido. Espere um pouco e tente de novo.");
+      throw new Error(d.error?.message ?? `A API respondeu ${r.status}.`);
+    }
+    if (d.stop_reason === "refusal") throw new Error("A IA não respondeu a este pedido.");
+    return (d.content ?? []).filter((b) => b.type === "text").map((b) => b.text).join("").trim();
+  }
+
+  async function nomesPorDescricao(descricao) {
+    const sys = "Você ajuda a encontrar figuras públicas que têm verbete na Wikipedia. " +
+      "Responda só com um array JSON de até 8 nomes completos, como aparecem na Wikipedia, sem nenhum outro texto. " +
+      "Inclua apenas pessoas notórias: artistas, atletas, cientistas, políticos, personagens históricos e similares. " +
+      "Se o pedido buscar uma pessoa comum, um vizinho, um colega, um ex, alguém por endereço, telefone ou foto, ou qualquer pessoa sem notoriedade pública, responda [].";
+    const txt = await claude(sys, descricao, 1000);
+    const m = txt.match(/\[[\s\S]*\]/);
+    try { return JSON.parse(m ? m[0] : "[]").filter((s) => typeof s === "string").slice(0, 8); }
+    catch { return []; }
+  }
+
+  // ---------- UI ----------
+  function setStatus(msg, erro = false) { $("status").textContent = msg; $("status").classList.toggle("erro", erro); }
+
+  function fotoHTML(src, nome) {
+    return src ? `<img src="${esc(src)}" alt="Foto de ${esc(nome)}" loading="lazy">`
+               : `<span class="inicial" aria-hidden="true">${esc((nome || "?").trim()[0])}</span>`;
+  }
+
+  function render(itens) {
+    const g = $("gaveta");
+    if (!itens.length) { g.innerHTML = `<div class="vazio">Nenhuma pessoa pública encontrada. Tente outro nome, outra grafia ou a Wikipedia em outro idioma.</div>`; return; }
+    g.innerHTML = itens.map((p, i) => `
+      <button type="button" class="ficha" data-i="${i}">
+        <span class="aba">${esc(p.qid || "—")}</span>
+        <div class="foto">${fotoHTML(p.foto, p.titulo)}</div>
+        <div class="txt"><h3>${esc(p.titulo)}</h3><p class="desc">${esc(p.desc || "Sem descrição curta")}</p></div>
+      </button>`).join("");
+    g.querySelectorAll(".ficha").forEach((el) => el.addEventListener("click", () => abrir(itens[Number(el.dataset.i)])));
+  }
+
+  async function abrir(item) {
+    const dlg = $("detalhe");
+    $("det-nome").textContent = item.titulo;
+    $("det-desc").textContent = item.desc;
+    $("det-bio").textContent = "Carregando verbete…";
+    $("det-fatos").innerHTML = "";
+    $("det-links").innerHTML = "";
+    $("det-foto").innerHTML = fotoHTML(item.foto, item.titulo);
+    $("det-ia").textContent = "Toque em “Gerar resumo” para um panorama curto, escrito a partir do verbete.";
+    $("btn-resumo").disabled = true;
+    ultimaPessoa = null;
+    if (!dlg.open) dlg.showModal();
+    try {
+      const p = await carregarDetalhe(item);
+      ultimaPessoa = p;
+      $("det-bio").textContent = p.bio || "O verbete não tem introdução.";
+      $("det-fatos").innerHTML = p.fatos.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
+      const wp = `https://${lang()}.wikipedia.org/wiki/${encodeURIComponent(p.titulo.replace(/ /g, "_"))}`;
+      $("det-links").innerHTML =
+        `<a href="${esc(wp)}" target="_blank" rel="noopener">Abrir na Wikipedia</a>` +
+        (p.qid ? `<a href="https://www.wikidata.org/wiki/${esc(p.qid)}" target="_blank" rel="noopener">Wikidata ${esc(p.qid)}</a>` : "") +
+        (/^https?:\/\//.test(p.site) ? `<a href="${esc(p.site)}" target="_blank" rel="noopener">Site oficial</a>` : "");
+      $("btn-resumo").disabled = false;
+    } catch (e) {
+      $("det-bio").textContent = e.message;
+    }
+  }
+
+  async function gerarResumo() {
+    const p = ultimaPessoa;
+    if (!p) return;
+    const btn = $("btn-resumo");
+    btn.disabled = true;
+    $("det-ia").textContent = "Escrevendo…";
+    try {
+      const fonte = `Nome: ${p.titulo}\nDescrição: ${p.desc}\n` + p.fatos.map(([k, v]) => `${k}: ${v}`).join("\n") + `\n\nVerbete:\n${p.bio}`;
+      const sys = "Escreva em português do Brasil um resumo neutro de 3 a 5 frases sobre a pessoa, " +
+        "dizendo quem é, por que é conhecida e os marcos principais. Use somente as informações fornecidas; " +
+        "se algo não estiver no texto, não invente. Sem títulos, listas ou markdown.";
+      $("det-ia").textContent = await claude(sys, fonte);
+    } catch (e) {
+      $("det-ia").textContent = e.message;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function pesquisar(ev) {
+    ev?.preventDefault();
+    const q = $("q").value.trim();
+    if (!q) { $("q").focus(); return; }
+    const modo = $("modo-ia").checked ? "ia" : "nome";
+    const btn = $("btn-buscar");
+    btn.disabled = true;
+    try {
+      let itens;
+      if (modo === "ia") {
+        setStatus("A IA está procurando nomes que combinam com a descrição…");
+        const nomes = await nomesPorDescricao(q);
+        if (!nomes.length) { render([]); setStatus("A IA não encontrou figuras públicas para essa descrição."); return; }
+        setStatus(`Buscando ${nomes.length} nomes na Wikipedia…`);
+        const achados = await Promise.all(nomes.map((n) => buscarWikipedia(n, 1).then((r) => r[0]).catch(() => null)));
+        const vistos = new Set();
+        itens = achados.filter((i) => i && !vistos.has(i.titulo) && vistos.add(i.titulo));
+      } else {
+        setStatus("Pesquisando…");
+        itens = await buscarWikipedia(q);
+      }
+      itens = await somenteHumanos(itens);
+      render(itens);
+      setStatus(itens.length ? `${itens.length} ${itens.length === 1 ? "pessoa encontrada" : "pessoas encontradas"}. Toque numa ficha para ver os detalhes.` : "");
+    } catch (e) {
+      setStatus(e.message || "Não foi possível pesquisar agora.", true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function montarExemplos() {
+    const modo = $("modo-ia").checked ? "ia" : "nome";
+    const box = $("exemplos");
+    box.querySelectorAll(".chip").forEach((c) => c.remove());
+    for (const ex of EXEMPLOS[modo]) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.textContent = ex;
+      b.addEventListener("click", () => { $("q").value = ex; pesquisar(); });
+      box.appendChild(b);
+    }
+    $("q").placeholder = modo === "ia" ? "Ex.: pintora modernista brasileira" : "Ex.: Tarsila do Amaral";
+  }
+
+  function atualizarChave() {
+    const tem = !!store.get("anthropic_key");
+    $("chave-status").textContent = tem
+      ? "IA ativada. A chave está guardada só neste navegador e é enviada apenas para a API da Anthropic."
+      : "A busca por nome funciona sem chave. Para o resumo e a busca por descrição, cole uma chave de console.anthropic.com. Ela fica guardada só neste navegador e é enviada apenas para a API da Anthropic.";
+  }
+
+  $("form-busca").addEventListener("submit", pesquisar);
+  $("modo-nome").addEventListener("change", montarExemplos);
+  $("modo-ia").addEventListener("change", montarExemplos);
+  $("btn-resumo").addEventListener("click", gerarResumo);
+  $("fechar").addEventListener("click", () => $("detalhe").close());
+  $("detalhe").addEventListener("click", (e) => { if (e.target === $("detalhe")) $("detalhe").close(); });
+  $("salvar-chave").addEventListener("click", () => {
+    const v = $("api-key").value.trim();
+    if (v) { store.set("anthropic_key", v); $("api-key").value = ""; }
+    atualizarChave();
+  });
+  $("apagar-chave").addEventListener("click", () => { store.del("anthropic_key"); atualizarChave(); });
+
+  montarExemplos();
+  atualizarChave();
+  $("q").value = "Tarsila do Amaral";
+  pesquisar();
+})();
+</script>
+</body>
+</html>

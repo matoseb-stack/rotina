@@ -99,3 +99,17 @@ App Android nativo para tablet, em Jetpack Compose, com cotações em tempo real
 **Link: https://matoseb-stack.github.io/rotina/investimentos/**
 
 Versão web em Next.js + Tailwind com cotações e gráficos reais da B3 e dos EUA (ações e ETFs), dólar, indicadores do Banco Central, central de notícias com 10 veículos, faixa de última hora e resumo do dia, em tema claro ou escuro. Veja [`web-investimentos/`](web-investimentos/README.md).
+
+## Fichário de Pessoas
+
+Página de pesquisa de pessoas públicas em `public/pessoas/index.html`, publicada junto com o site em
+https://matoseb-stack.github.io/rotina/pessoas/. É um único arquivo HTML, sem build.
+
+- **Por nome:** busca na Wikipedia (português, inglês ou espanhol) e mostra só verbetes de pessoas (Wikidata P31 = humano),
+  com foto, descrição, nascimento, morte, nacionalidade, ocupação, formação e prêmios.
+- **Descrever com IA:** escreva algo como "pintora modernista brasileira"; o Claude sugere nomes e o fichário procura cada um na Wikipedia.
+- **Resumo por IA:** em cada ficha, um resumo curto escrito só a partir do verbete.
+
+Os recursos de IA pedem uma chave da API da Anthropic, colada em "Ativar a IA". Ela fica no `localStorage` do navegador
+e só é enviada para `api.anthropic.com`. A busca por nome funciona sem chave.
+O fichário só mostra pessoas com verbete na Wikipedia: não faz reconhecimento facial nem busca dados de pessoas comuns.
