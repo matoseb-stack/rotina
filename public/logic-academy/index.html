@@ -1,0 +1,2137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Logic Academy · Escola Naval</title>
+  <meta name="description" content="Plataforma de estudos para candidatos à Escola Naval da Marinha do Brasil." />
+  <meta name="theme-color" content="#071d41" />
+
+  <!-- ===================== DEPENDÊNCIAS (CDN) ===================== -->
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <script>
+    // Paleta institucional: Azul Marinho + Dourado Insígnia + Gelo
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: { 950: '#04112a', 900: '#071d41', 800: '#0b2a5b', 700: '#123a78', 600: '#1d4f9c', 200: '#c7d4ea', 100: '#e3eaf6', 50: '#f1f5fb' },
+            gold: { 700: '#8a6b14', 600: '#a8831c', 500: '#c59b27', 400: '#d8b44a', 300: '#e8cd7a', 100: '#f8efd4', 50: '#fcf8ec' },
+            ice: '#f3f5f8'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Oswald', 'Inter', 'sans-serif']
+          },
+          boxShadow: {
+            soft: '0 1px 2px rgba(7,29,65,.04), 0 6px 24px -8px rgba(7,29,65,.12)'
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <!-- ===================== COMPONENTES (Tailwind @apply) ===================== -->
+  <style type="text/tailwindcss">
+    @layer components {
+      .card        { @apply bg-white rounded-2xl shadow-soft border border-slate-200/70; }
+      .card-pad    { @apply p-5 sm:p-6; }
+      .btn         { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition active:scale-[.98] disabled:opacity-50 disabled:pointer-events-none; }
+      .btn-primary { @apply btn bg-navy-900 text-white hover:bg-navy-800; }
+      .btn-gold    { @apply btn bg-gold-500 text-navy-950 hover:bg-gold-400; }
+      .btn-ghost   { @apply btn bg-slate-100 text-slate-700 hover:bg-slate-200; }
+      .btn-danger  { @apply btn bg-rose-50 text-rose-700 hover:bg-rose-100; }
+      .input       { @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-navy-600 focus:ring-2 focus:ring-navy-100; }
+      .label       { @apply block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5; }
+      .chip        { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold; }
+      .section-title { @apply font-display text-lg font-semibold tracking-wide text-navy-900 uppercase; }
+      .nav-item    { @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-navy-100/80 transition hover:bg-white/5 hover:text-white; }
+      .nav-item.active { @apply bg-gold-500/15 text-gold-300; }
+      .bar         { @apply h-2 w-full overflow-hidden rounded-full bg-slate-100; }
+      .bar > span  { @apply block h-full rounded-full transition-all duration-500; }
+    }
+  </style>
+  <style>
+    html { -webkit-tap-highlight-color: transparent; }
+    body { background: #f3f5f8; }
+    /* Faixa decorativa estilo "galão" (listras douradas) */
+    .stripe { background: repeating-linear-gradient(90deg, #c59b27 0 18px, transparent 18px 24px); height: 3px; }
+    .wave-bg {
+      background-image:
+        radial-gradient(1200px 300px at 110% -20%, rgba(197,155,39,.18), transparent 60%),
+        radial-gradient(800px 260px at -10% 120%, rgba(29,79,156,.55), transparent 60%);
+    }
+    .ring-track { stroke: #e3eaf6; }
+    .ring-prog  { transition: stroke-dashoffset .35s linear; }
+    .fade-in { animation: fadeIn .25s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .toast-in { animation: toastIn .25s ease-out; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { scrollbar-width: none; }
+    .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+    .q-text { white-space: pre-line; }
+  </style>
+</head>
+
+<body class="font-sans text-slate-800 antialiased">
+  <div class="min-h-screen lg:flex">
+
+    <!-- ===================== SIDEBAR (desktop) ===================== -->
+    <aside class="hidden lg:flex fixed inset-y-0 left-0 w-64 flex-col bg-navy-900 text-white wave-bg">
+      <div class="flex items-center gap-3 px-5 pt-6 pb-5">
+        <div class="grid h-11 w-11 place-items-center rounded-xl bg-gold-500 text-navy-950 shadow-lg shadow-gold-500/20">
+          <i class="fa-solid fa-anchor text-lg"></i>
+        </div>
+        <div class="leading-tight">
+          <div class="font-display text-lg font-semibold tracking-wider">LOGIC ACADEMY</div>
+          <div class="text-[11px] font-medium uppercase tracking-[.18em] text-gold-300">Edição Escola Naval</div>
+        </div>
+      </div>
+      <div class="stripe mx-5 mb-4 opacity-70"></div>
+      <nav id="side-nav" class="flex-1 space-y-1 px-3"></nav>
+      <div id="side-rank" class="m-3 rounded-2xl border border-white/10 bg-white/5 p-4"></div>
+      <div class="px-5 pb-5 text-[11px] text-navy-200/60">Dados salvos neste navegador.</div>
+    </aside>
+
+    <!-- ===================== ÁREA PRINCIPAL ===================== -->
+    <div class="flex-1 lg:ml-64 pb-28 lg:pb-10">
+      <header class="sticky top-0 z-30 border-b border-slate-200/70 bg-ice/85 backdrop-blur">
+        <div class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <!-- Marca (mobile) -->
+          <div class="flex items-center gap-2 lg:hidden">
+            <div class="grid h-9 w-9 place-items-center rounded-lg bg-navy-900 text-gold-400"><i class="fa-solid fa-anchor"></i></div>
+            <div class="leading-tight">
+              <div class="font-display text-[15px] font-semibold tracking-wider text-navy-900">LOGIC ACADEMY</div>
+              <div class="text-[10px] font-semibold uppercase tracking-[.16em] text-gold-600">Escola Naval</div>
+            </div>
+          </div>
+          <h1 id="view-title" class="hidden lg:block font-display text-xl font-semibold uppercase tracking-wide text-navy-900"></h1>
+          <div class="ml-auto flex items-center gap-2">
+            <button id="timer-pill" data-action="go" data-view="timer" class="hidden chip bg-navy-900 text-gold-300 py-1.5 px-3" aria-label="Cronômetro em andamento">
+              <i class="fa-solid fa-circle text-[7px] text-emerald-400 animate-pulse"></i><span id="timer-pill-text">00:00</span>
+            </button>
+            <div id="header-rank" class="hidden sm:flex lg:hidden"></div>
+            <button data-action="open-settings" class="grid h-10 w-10 place-items-center rounded-xl bg-white text-navy-900 shadow-soft border border-slate-200/70 hover:bg-navy-50" aria-label="Configurações">
+              <i class="fa-solid fa-gear"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div id="storage-warning" class="hidden mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+        <div class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+          <strong>Armazenamento local indisponível.</strong> Seu navegador está bloqueando o localStorage (modo privado ou permissão).
+          O app funciona, mas os dados serão perdidos ao fechar. Use <em>Configurações → Exportar backup</em>.
+        </div>
+      </div>
+
+      <main id="view" class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8"></main>
+    </div>
+  </div>
+
+  <!-- ===================== NAV INFERIOR (mobile) ===================== -->
+  <nav id="bottom-nav" class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-navy-900 text-white border-t border-white/10 safe-bottom">
+    <div id="bottom-nav-items" class="grid grid-cols-5"></div>
+  </nav>
+
+  <div id="modal-root"></div>
+  <div id="toast-root" class="pointer-events-none fixed inset-x-0 bottom-24 lg:bottom-6 z-[60] flex flex-col items-center gap-2 px-4"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   LOGIC ACADEMY — EDIÇÃO ESCOLA NAVAL
+   Single-file app: Tailwind (CDN) + Font Awesome + JavaScript vanilla.
+   Organização:
+     1. Dados estáticos (matérias, edital, patentes, banco de questões)
+     2. Persistência (localStorage com validação, backup e fallback)
+     3. Estado + utilitários
+     4. Gamificação / estatísticas
+     5. Cronômetro (Pomodoro & Livre) + Web Audio
+     6. Views (Dashboard, Cronômetro, Edital, Questões, Plano)
+     7. Modais, toasts e eventos
+   ===================================================================== */
+
+/* =====================================================================
+   1. DADOS ESTÁTICOS
+   ===================================================================== */
+
+const SUBJECTS = {
+  mat: { name: 'Matemática', short: 'MAT', icon: 'fa-square-root-variable', color: '#1d4f9c' },
+  fis: { name: 'Física',     short: 'FIS', icon: 'fa-atom',                 color: '#7c3aed' },
+  por: { name: 'Português',  short: 'POR', icon: 'fa-book-open',            color: '#059669' },
+  ing: { name: 'Inglês',     short: 'ING', icon: 'fa-language',             color: '#dc2626' },
+  red: { name: 'Redação',    short: 'RED', icon: 'fa-pen-nib',              color: '#c59b27' }
+};
+const SUBJECT_KEYS = Object.keys(SUBJECTS);
+
+/* Edital verticalizado — baseado nos conteúdos programáticos recentes do
+   Concurso de Admissão à Escola Naval (CPAEN). Sempre confira o edital vigente.
+   IDs dos tópicos são estáveis (prefixo + slug) para não perder o progresso
+   caso a lista seja reordenada no futuro. */
+const EDITAL = {
+  mat: [
+    ['conjuntos', 'Conjuntos e conjuntos numéricos'],
+    ['funcoes', 'Funções: afim, quadrática, modular, composta e inversa'],
+    ['explog', 'Funções exponencial e logarítmica'],
+    ['trigo', 'Trigonometria e funções trigonométricas'],
+    ['progressoes', 'Progressões aritméticas e geométricas'],
+    ['matrizes', 'Matrizes, determinantes e sistemas lineares'],
+    ['combinatoria', 'Análise combinatória e binômio de Newton'],
+    ['probabilidade', 'Probabilidade e estatística básica'],
+    ['complexos', 'Números complexos'],
+    ['polinomios', 'Polinômios e equações algébricas'],
+    ['geoplana', 'Geometria plana'],
+    ['geoespacial', 'Geometria espacial'],
+    ['analitica', 'Geometria analítica: ponto, reta e circunferência'],
+    ['conicas', 'Cônicas: elipse, hipérbole e parábola'],
+    ['vetores', 'Vetores no plano e no espaço'],
+    ['limites', 'Limites e continuidade'],
+    ['derivadas', 'Derivadas e aplicações'],
+    ['integrais', 'Integrais e aplicações']
+  ],
+  fis: [
+    ['grandezas', 'Grandezas físicas, unidades (SI) e vetores'],
+    ['cinematica', 'Cinemática escalar e vetorial'],
+    ['lancamentos', 'Lançamentos e movimento circular'],
+    ['newton', 'Leis de Newton e aplicações (atrito, plano inclinado)'],
+    ['energia', 'Trabalho, energia e potência'],
+    ['impulso', 'Impulso, quantidade de movimento e colisões'],
+    ['estatica', 'Estática do ponto e do corpo extenso'],
+    ['hidro', 'Hidrostática'],
+    ['gravitacao', 'Gravitação universal'],
+    ['mhs', 'MHS e ondulatória'],
+    ['acustica', 'Acústica'],
+    ['calorimetria', 'Termologia, dilatação e calorimetria'],
+    ['termo', 'Gases ideais e termodinâmica'],
+    ['optica', 'Óptica geométrica'],
+    ['eletrostatica', 'Eletrostática'],
+    ['eletrodinamica', 'Eletrodinâmica e circuitos elétricos'],
+    ['magnetismo', 'Magnetismo e indução eletromagnética']
+  ],
+  por: [
+    ['interpretacao', 'Compreensão e interpretação de textos'],
+    ['generos', 'Tipologia e gêneros textuais'],
+    ['ortografia', 'Ortografia e acentuação gráfica'],
+    ['classes', 'Classes de palavras'],
+    ['formacao', 'Estrutura e formação de palavras'],
+    ['simples', 'Sintaxe do período simples'],
+    ['composto', 'Sintaxe do período composto'],
+    ['concordancia', 'Concordância verbal e nominal'],
+    ['regencia', 'Regência verbal e nominal; crase'],
+    ['colocacao', 'Colocação pronominal'],
+    ['pontuacao', 'Pontuação'],
+    ['semantica', 'Semântica e figuras de linguagem'],
+    ['coesao', 'Coesão e coerência textual'],
+    ['variacao', 'Variação linguística e funções da linguagem']
+  ],
+  ing: [
+    ['reading', 'Reading comprehension (interpretação de textos)'],
+    ['tenses', 'Verb tenses (tempos verbais)'],
+    ['modals', 'Modal verbs'],
+    ['conditionals', 'Conditionals (if clauses)'],
+    ['passive', 'Passive voice'],
+    ['reported', 'Reported speech'],
+    ['pronouns', 'Pronouns, articles and determiners'],
+    ['connectors', 'Prepositions, conjunctions and connectors'],
+    ['phrasal', 'Phrasal verbs'],
+    ['comparison', 'Comparatives and superlatives'],
+    ['relative', 'Relative clauses'],
+    ['vocab', 'Vocabulary, false cognates and word formation'],
+    ['gerund', 'Gerund and infinitive']
+  ],
+  red: [
+    ['estrutura', 'Estrutura do texto dissertativo-argumentativo'],
+    ['tese', 'Tese, argumentação e tipos de argumento'],
+    ['conectivos', 'Coesão: conectivos e retomadas'],
+    ['coerencia', 'Coerência e progressão temática'],
+    ['introconc', 'Introdução e conclusão eficazes'],
+    ['repertorio', 'Repertório sociocultural'],
+    ['norma', 'Adequação à norma-padrão'],
+    ['temas', 'Prática: atualidades, soberania e Amazônia Azul']
+  ]
+};
+
+/* Os 4 marcadores de status de cada tópico */
+const STATUS_FIELDS = [
+  { key: 'teoria',   label: 'Teoria Vista',    icon: 'fa-book' },
+  { key: 'resumo',   label: 'Resumo Feito',    icon: 'fa-file-pen' },
+  { key: 'questoes', label: 'Questões Feitas', icon: 'fa-list-check' },
+  { key: 'revisado', label: 'Revisado',        icon: 'fa-rotate' }
+];
+
+/* Patentes navais (hierarquia simplificada da MB) — evoluem com XP */
+const RANKS = [
+  { xp: 0,     name: 'Recruta',                 icon: 'fa-person',          motto: 'Todo grande oficial começou aqui.' },
+  { xp: 50,    name: 'Marinheiro',              icon: 'fa-anchor',          motto: 'Primeiras milhas navegadas.' },
+  { xp: 150,   name: 'Cabo',                    icon: 'fa-chevron-up',      motto: 'Disciplina virando hábito.' },
+  { xp: 300,   name: 'Terceiro-Sargento',       icon: 'fa-angles-up',       motto: 'Constância é a sua bússola.' },
+  { xp: 500,   name: 'Suboficial',              icon: 'fa-shield-halved',   motto: 'Referência para a guarnição.' },
+  { xp: 800,   name: 'Aspirante',               icon: 'fa-graduation-cap',  motto: 'Olhos na Escola Naval.' },
+  { xp: 1200,  name: 'Guarda-Marinha',          icon: 'fa-compass',         motto: 'Rumo firme, mar aberto.' },
+  { xp: 1700,  name: 'Segundo-Tenente',         icon: 'fa-star',            motto: 'Liderança pelo exemplo.' },
+  { xp: 2300,  name: 'Primeiro-Tenente',        icon: 'fa-star',            motto: 'Domínio do conteúdo.' },
+  { xp: 3000,  name: 'Capitão-Tenente',         icon: 'fa-star',            motto: 'Preparação de alto nível.' },
+  { xp: 4000,  name: 'Capitão de Corveta',      icon: 'fa-ship',            motto: 'Comando da própria rotina.' },
+  { xp: 5200,  name: 'Capitão de Fragata',      icon: 'fa-ship',            motto: 'Resistência em mar grosso.' },
+  { xp: 6600,  name: 'Capitão de Mar e Guerra', icon: 'fa-ship',            motto: 'Estratégia e excelência.' },
+  { xp: 8200,  name: 'Contra-Almirante',        icon: 'fa-medal',           motto: 'Visão de esquadra.' },
+  { xp: 10000, name: 'Vice-Almirante',          icon: 'fa-medal',           motto: 'Quase no topo da carreira.' },
+  { xp: 12500, name: 'Almirante de Esquadra',   icon: 'fa-crown',           motto: 'Aprovação à vista. Bravo Zulu!' }
+];
+
+/* Regras de XP (exibidas no modal de patentes) */
+const XP_RULES = { perStudyHour: 30, perAnswer: 2, perCorrect: 3, perEditalCheck: 4, perSimulado: 15 };
+
+const DIFFICULTY = { 1: { label: 'Fácil', cls: 'bg-emerald-50 text-emerald-700' }, 2: { label: 'Médio', cls: 'bg-amber-50 text-amber-700' }, 3: { label: 'Difícil', cls: 'bg-rose-50 text-rose-700' } };
+
+/* Banco de questões — nível Escola Naval.
+   s: matéria | d: dificuldade (1-3) | a: índice da alternativa correta | exp: resolução */
+const QUESTIONS = [
+  // ---------------- MATEMÁTICA ----------------
+  { id: 'mat01', s: 'mat', d: 2, q: 'Calcule o limite:  lim (x→0) sen(3x) / x.', opts: ['0', '1/3', '1', '3', 'O limite não existe'], a: 3,
+    exp: '1) Multiplique e divida por 3: sen(3x)/x = 3 · sen(3x)/(3x).\n2) Fazendo u = 3x, quando x→0 temos u→0 e lim sen(u)/u = 1 (limite fundamental).\n3) Logo, o limite vale 3 · 1 = 3.' },
+  { id: 'mat02', s: 'mat', d: 1, q: 'Seja f(x) = x³ · ln x, com x > 0. O valor de f\'(1) é:', opts: ['0', '1', '2', '3', 'e'], a: 1,
+    exp: '1) Regra do produto: f\'(x) = 3x² · ln x + x³ · (1/x) = 3x² ln x + x².\n2) Em x = 1: ln 1 = 0, então f\'(1) = 0 + 1 = 1.' },
+  { id: 'mat03', s: 'mat', d: 1, q: 'O valor da integral definida ∫₀¹ (2x + 1) dx é:', opts: ['1', '3/2', '2', '5/2', '3'], a: 2,
+    exp: '1) Primitiva: ∫(2x + 1)dx = x² + x.\n2) Avaliando de 0 a 1: (1² + 1) − (0 + 0) = 2.' },
+  { id: 'mat04', s: 'mat', d: 2, q: 'Sendo i a unidade imaginária, o número complexo (1 + i)⁸ é igual a:', opts: ['−16', '16', '16i', '−16i', '8'], a: 1,
+    exp: '1) (1 + i)² = 1 + 2i + i² = 2i.\n2) (1 + i)⁸ = [(1 + i)²]⁴ = (2i)⁴ = 16 · i⁴.\n3) Como i⁴ = 1, o resultado é 16.' },
+  { id: 'mat05', s: 'mat', d: 1, q: 'Quantos anagramas distintos podem ser formados com as letras da palavra NAVAL?', opts: ['120', '60', '30', '24', '20'], a: 1,
+    exp: '1) NAVAL tem 5 letras, com a letra A repetida 2 vezes.\n2) Permutação com repetição: P = 5! / 2! = 120 / 2 = 60.' },
+  { id: 'mat06', s: 'mat', d: 2, q: 'O valor real de x que satisfaz log₂ x + log₄ x = 6 é:', opts: ['4', '8', '16', '32', '64'], a: 2,
+    exp: '1) Mudança de base: log₄ x = log₂ x / log₂ 4 = (1/2) log₂ x.\n2) Então log₂ x + (1/2) log₂ x = 6 ⇒ (3/2) log₂ x = 6 ⇒ log₂ x = 4.\n3) Portanto x = 2⁴ = 16.' },
+  { id: 'mat07', s: 'mat', d: 1, q: 'A soma da série geométrica infinita 1 + 1/3 + 1/9 + 1/27 + … é:', opts: ['4/3', '3/2', '2', '5/3', '3'], a: 1,
+    exp: '1) PG infinita com a₁ = 1 e razão q = 1/3 (|q| < 1, logo converge).\n2) S = a₁ / (1 − q) = 1 / (2/3) = 3/2.' },
+  { id: 'mat08', s: 'mat', d: 1, q: 'Lançando-se dois dados honestos de seis faces, a probabilidade de a soma das faces ser 7 é:', opts: ['1/12', '1/9', '1/6', '5/36', '7/36'], a: 2,
+    exp: '1) Espaço amostral: 6 × 6 = 36 resultados.\n2) Casos favoráveis: (1,6), (2,5), (3,4), (4,3), (5,2), (6,1) → 6 casos.\n3) P = 6/36 = 1/6.' },
+  { id: 'mat09', s: 'mat', d: 3, q: 'Sejam r₁, r₂ e r₃ as raízes do polinômio p(x) = x³ − 6x² + 11x − 6. O valor de r₁² + r₂² + r₃² é:', opts: ['6', '11', '14', '36', '49'], a: 2,
+    exp: '1) Relações de Girard: r₁ + r₂ + r₃ = 6 e r₁r₂ + r₁r₃ + r₂r₃ = 11.\n2) Identidade: Σr² = (Σr)² − 2·Σ(rᵢrⱼ) = 36 − 22 = 14.\n3) Conferência: as raízes são 1, 2 e 3 → 1 + 4 + 9 = 14.' },
+  { id: 'mat10', s: 'mat', d: 2, q: 'A distância do ponto P(1, 2) à reta r: 3x + 4y − 1 = 0 é:', opts: ['1', '2', '5/2', '10', '11/5'], a: 1,
+    exp: '1) Fórmula: d = |a·x₀ + b·y₀ + c| / √(a² + b²).\n2) d = |3·1 + 4·2 − 1| / √(9 + 16) = |10| / 5 = 2.' },
+  { id: 'mat11', s: 'mat', d: 3, q: 'O valor de ∫₀^π x · sen x dx é:', opts: ['0', '1', '2', 'π', '2π'], a: 3,
+    exp: '1) Integração por partes: u = x (du = dx) e dv = sen x dx (v = −cos x).\n2) ∫x sen x dx = −x cos x + ∫cos x dx = −x cos x + sen x.\n3) De 0 a π: [−π·cos π + sen π] − [0 + 0] = [−π·(−1) + 0] = π.' },
+  { id: 'mat12', s: 'mat', d: 2, q: 'Seja A = [[2, 1], [3, 4]] uma matriz 2×2. O determinante da matriz 2A é:', opts: ['5', '10', '20', '40', '25'], a: 2,
+    exp: '1) det A = 2·4 − 1·3 = 5.\n2) Para uma matriz de ordem n: det(kA) = kⁿ · det A.\n3) det(2A) = 2² · 5 = 20.' },
+  { id: 'mat13', s: 'mat', d: 3, q: 'Uma esfera está inscrita em um cubo de aresta 6 cm. A razão entre o volume da esfera e o volume do cubo é:', opts: ['π/3', 'π/4', 'π/6', '2π/3', 'π/8'], a: 2,
+    exp: '1) Esfera inscrita: raio = aresta/2 = 3 cm.\n2) V_esfera = (4/3)π·3³ = 36π cm³; V_cubo = 6³ = 216 cm³.\n3) Razão = 36π / 216 = π/6.' },
+  { id: 'mat14', s: 'mat', d: 2, q: 'Se sen x + cos x = 1/2, então sen(2x) vale:', opts: ['−3/4', '3/4', '−1/2', '1/4', '−1/4'], a: 0,
+    exp: '1) Eleve ao quadrado: (sen x + cos x)² = sen²x + cos²x + 2 sen x cos x = 1 + sen 2x.\n2) Logo 1 + sen 2x = 1/4 ⇒ sen 2x = −3/4.' },
+
+  // ---------------- FÍSICA ----------------
+  { id: 'fis01', s: 'fis', d: 1, q: 'Um corpo é abandonado do repouso de uma altura de 80 m. Desprezando a resistência do ar e adotando g = 10 m/s², o tempo de queda é:', opts: ['2 s', '3 s', '4 s', '5 s', '8 s'], a: 2,
+    exp: '1) Queda livre: h = g·t²/2.\n2) 80 = 10·t²/2 ⇒ 80 = 5t² ⇒ t² = 16.\n3) t = 4 s.' },
+  { id: 'fis02', s: 'fis', d: 1, q: 'Um bloco desliza sobre um plano inclinado de 30° sem atrito. Com g = 10 m/s², o módulo da aceleração do bloco é:', opts: ['2,5 m/s²', '5,0 m/s²', '7,5 m/s²', '8,7 m/s²', '10 m/s²'], a: 1,
+    exp: '1) A componente do peso paralela ao plano é P·sen θ = m·g·sen θ.\n2) Sem atrito: m·a = m·g·sen θ ⇒ a = g·sen 30°.\n3) a = 10 · 0,5 = 5,0 m/s².' },
+  { id: 'fis03', s: 'fis', d: 1, q: 'Um objeto de volume 2,0 L é totalmente imerso em água (ρ = 1000 kg/m³). Com g = 10 m/s², o empuxo sobre ele vale:', opts: ['2 N', '10 N', '20 N', '200 N', '2000 N'], a: 2,
+    exp: '1) Princípio de Arquimedes: E = ρ_líq · V_imerso · g.\n2) V = 2,0 L = 2,0 × 10⁻³ m³.\n3) E = 1000 · 2 × 10⁻³ · 10 = 20 N.' },
+  { id: 'fis04', s: 'fis', d: 2, q: 'Três resistores de 6 Ω cada são associados em paralelo e ligados a uma fonte ideal de 12 V. A corrente total fornecida pela fonte é:', opts: ['0,67 A', '2 A', '4 A', '6 A', '18 A'], a: 3,
+    exp: '1) Resistores iguais em paralelo: R_eq = R/n = 6/3 = 2 Ω.\n2) Lei de Ohm: i = U / R_eq = 12 / 2 = 6 A.' },
+  { id: 'fis05', s: 'fis', d: 1, q: 'Qual a quantidade de calor necessária para aquecer 200 g de água de 20 °C até 70 °C? (c_água = 1 cal/g·°C)', opts: ['1 kcal', '5 kcal', '10 kcal', '14 kcal', '20 kcal'], a: 2,
+    exp: '1) Calor sensível: Q = m·c·ΔT.\n2) Q = 200 · 1 · (70 − 20) = 10 000 cal.\n3) Q = 10 kcal.' },
+  { id: 'fis06', s: 'fis', d: 2, q: 'Um satélite orbita a uma altitude igual a 3R acima da superfície de um planeta de raio R. A razão entre a aceleração gravitacional nessa órbita e na superfície (g\'/g) é:', opts: ['1/3', '1/4', '1/9', '1/16', '1/64'], a: 3,
+    exp: '1) g = GM/d², onde d é a distância ao CENTRO do planeta.\n2) Na órbita: d = R + 3R = 4R.\n3) g\'/g = R² / (4R)² = 1/16.' },
+  { id: 'fis07', s: 'fis', d: 2, q: 'Um objeto é colocado a 30 cm de um espelho esférico côncavo de distância focal 20 cm. A imagem formada é:', opts: ['Virtual, direita, a 12 cm do espelho', 'Real, invertida, a 60 cm do espelho e duas vezes maior', 'Real, direita, a 60 cm do espelho', 'Real, invertida, a 12 cm do espelho e menor', 'Virtual, invertida, a 60 cm do espelho'], a: 1,
+    exp: '1) Equação de Gauss: 1/f = 1/p + 1/p\' ⇒ 1/p\' = 1/20 − 1/30 = 1/60 ⇒ p\' = +60 cm (real).\n2) Aumento: A = −p\'/p = −60/30 = −2 → invertida e 2 vezes maior.' },
+  { id: 'fis08', s: 'fis', d: 3, q: 'Um bloco de 2 kg a 6 m/s colide com outro de 1 kg em repouso. Após o choque, seguem unidos. A energia cinética dissipada na colisão é:', opts: ['4 J', '8 J', '12 J', '24 J', '36 J'], a: 2,
+    exp: '1) Conservação do momento: 2·6 = (2 + 1)·v ⇒ v = 4 m/s.\n2) Ec inicial = ½·2·6² = 36 J; Ec final = ½·3·4² = 24 J.\n3) Energia dissipada = 36 − 24 = 12 J.' },
+  { id: 'fis09', s: 'fis', d: 2, q: 'Um oscilador massa-mola tem m = 0,5 kg e k = 200 N/m. O período de oscilação é:', opts: ['π/20 s', 'π/10 s', 'π/5 s', '2π s', '10π s'], a: 1,
+    exp: '1) T = 2π·√(m/k) = 2π·√(0,5/200) = 2π·√(1/400).\n2) T = 2π · (1/20) = π/10 s.' },
+  { id: 'fis10', s: 'fis', d: 2, q: 'Uma carga q = 2 μC move-se com velocidade de 3 × 10⁵ m/s perpendicularmente a um campo magnético uniforme de 0,5 T. A intensidade da força magnética é:', opts: ['0,03 N', '0,15 N', '0,3 N', '3 N', '30 N'], a: 2,
+    exp: '1) F = |q|·v·B·sen θ, com θ = 90° (sen = 1).\n2) F = 2 × 10⁻⁶ · 3 × 10⁵ · 0,5 = 0,3 N.' },
+  { id: 'fis11', s: 'fis', d: 2, q: 'Uma máquina de Carnot opera entre as temperaturas de 527 °C e 127 °C. Seu rendimento é:', opts: ['25%', '50%', '60%', '75%', '76%'], a: 1,
+    exp: '1) Converta para kelvin: T_q = 527 + 273 = 800 K; T_f = 127 + 273 = 400 K.\n2) η = 1 − T_f/T_q = 1 − 400/800 = 0,5 = 50%.\n⚠ Armadilha: usar °C dá 1 − 127/527 ≈ 76% (errado).' },
+  { id: 'fis12', s: 'fis', d: 3, q: 'Um projétil é lançado do solo com velocidade de 20 m/s, formando 30° com a horizontal. Com g = 10 m/s² e sem resistência do ar, o alcance horizontal é:', opts: ['10√3 m', '20 m', '20√3 m', '40 m', '40√3 m'], a: 2,
+    exp: '1) Alcance: A = v₀² · sen(2θ) / g.\n2) A = 400 · sen 60° / 10 = 40 · (√3/2).\n3) A = 20√3 m ≈ 34,6 m.' },
+  { id: 'fis13', s: 'fis', d: 1, q: 'Um móvel parte do repouso com aceleração constante de 2 m/s². A distância percorrida nos primeiros 5 s é:', opts: ['10 m', '20 m', '25 m', '50 m', '100 m'], a: 2,
+    exp: '1) MUV: ΔS = v₀·t + a·t²/2.\n2) ΔS = 0 + 2·25/2 = 25 m.' },
+
+  // ---------------- PORTUGUÊS ----------------
+  { id: 'por01', s: 'por', d: 1, q: 'Assinale a alternativa que completa corretamente as lacunas:\n"Refiro-me ___ pessoas que ontem chegaram ___ base naval."', opts: ['a / a', 'às / à', 'as / a', 'às / a', 'a / à'], a: 1,
+    exp: '1) "Referir-se" exige preposição "a"; "as pessoas" tem artigo feminino plural → a + as = ÀS.\n2) "Chegar" exige preposição "a" (chegar a algum lugar); "a base" tem artigo → a + a = À.' },
+  { id: 'por02', s: 'por', d: 2, q: 'Assinale a frase que está de acordo com a norma-padrão quanto à concordância verbal:', opts: ['Fazem dois anos que não vejo o mar.', 'Houveram muitos problemas na manobra.', 'Faz dois anos que ingressei na preparação.', 'Devem haver soluções para o caso.', 'Existe muitas dúvidas sobre o edital.'], a: 2,
+    exp: '1) "Fazer" indicando tempo decorrido é impessoal → fica no singular: "Faz dois anos".\n2) "Haver" no sentido de existir também é impessoal: "Houve problemas", "Deve haver soluções" (o auxiliar também fica no singular).\n3) "Existir" é pessoal e concorda com o sujeito: "Existem muitas dúvidas".' },
+  { id: 'por03', s: 'por', d: 2, q: 'Quanto à regência verbal, a alternativa correta é:', opts: ['Os candidatos assistiram o desfile naval.', 'Prefiro estudar Física do que Química.', 'O comandante visou ao bem-estar da tripulação.', 'Esqueci do horário da formatura.', 'É preciso obedecer o regulamento.'], a: 2,
+    exp: '1) "Visar" no sentido de ter por objetivo é transitivo indireto: visar A algo → "visou ao bem-estar". ✔\n2) "Assistir" (ver) exige "a": assistiram AO desfile.\n3) "Preferir" pede "a": prefiro Física A Química.\n4) "Esquecer" sem pronome é direto: esqueci O horário (ou esqueci-me DO horário).\n5) "Obedecer" exige "a": obedecer AO regulamento.' },
+  { id: 'por04', s: 'por', d: 1, q: 'Em "O mar beijava suavemente a areia da praia", a figura de linguagem predominante é:', opts: ['Hipérbole', 'Metonímia', 'Prosopopeia', 'Antítese', 'Eufemismo'], a: 2,
+    exp: '1) Atribui-se uma ação humana (beijar) a um ser inanimado (o mar).\n2) Isso caracteriza a prosopopeia, também chamada personificação.' },
+  { id: 'por05', s: 'por', d: 2, q: 'Assinale a alternativa em que a colocação pronominal está de acordo com a norma-padrão:', opts: ['Não disseram-me a verdade.', 'Me empreste o manual, por favor.', 'Ninguém se apresentou ao oficial de serviço.', 'Tinha avisado-o do perigo.', 'Quando viu-me, o instrutor sorriu.'], a: 2,
+    exp: '1) Pronomes indefinidos ("ninguém") atraem o pronome oblíquo → próclise: "Ninguém se apresentou". ✔\n2) Palavras negativas ("não") e conjunções subordinativas ("quando") também exigem próclise.\n3) Não se inicia frase com pronome oblíquo átono na norma-padrão.\n4) Não há ênclise ao particípio: "Tinha-o avisado".' },
+  { id: 'por06', s: 'por', d: 2, q: 'Em "Embora estivesse exausto, o marinheiro permaneceu no posto", a oração destacada ("Embora estivesse exausto") é subordinada adverbial:', opts: ['causal', 'condicional', 'concessiva', 'consecutiva', 'temporal'], a: 2,
+    exp: '1) "Embora" é conjunção concessiva: expressa um fato contrário à ação principal, mas que não a impede.\n2) O cansaço não impediu o marinheiro de permanecer no posto → oração subordinada adverbial concessiva.' },
+  { id: 'por07', s: 'por', d: 3, q: 'Na frase "Vendem-se embarcações usadas", o termo "embarcações" exerce a função sintática de:', opts: ['objeto direto', 'sujeito', 'predicativo do sujeito', 'agente da passiva', 'objeto indireto'], a: 1,
+    exp: '1) Verbo transitivo direto + "se" = voz passiva sintética; o "se" é partícula apassivadora.\n2) Transpondo para a passiva analítica: "Embarcações usadas são vendidas".\n3) Logo, "embarcações" é o SUJEITO — por isso o verbo concorda no plural (vendem-se).' },
+  { id: 'por08', s: 'por', d: 2, q: 'Assinale a alternativa corretamente pontuada:', opts: ['Os candidatos, estudaram a noite toda.', 'O navio que partiu ontem, chegará amanhã ao porto.', 'A Marinha do Brasil, instituição secular, protege a Amazônia Azul.', 'Eles precisam, de disciplina e método.', 'Quem estuda com método, alcança a aprovação.'], a: 2,
+    exp: '1) "instituição secular" é um aposto explicativo → deve vir entre vírgulas. ✔\n2) Nas demais, a vírgula separa indevidamente sujeito de verbo (A, B, E) ou verbo de complemento (D).' },
+
+  // ---------------- INGLÊS ----------------
+  { id: 'ing01', s: 'ing', d: 1, q: 'Choose the correct option:\n"If I ___ you, I would review the chapter on vectors."', opts: ['am', 'was being', 'were', 'have been', 'will be'], a: 2,
+    exp: '1) Second conditional (situação hipotética): If + past simple, would + verbo.\n2) Com o verbo "to be", a norma formal usa "were" para todas as pessoas: "If I were you…".' },
+  { id: 'ing02', s: 'ing', d: 1, q: 'Choose the correct option:\n"She has lived in Rio de Janeiro ___ 2015."', opts: ['for', 'since', 'during', 'at', 'from'], a: 1,
+    exp: '1) Present perfect + ponto de partida no tempo → "since" (desde).\n2) "for" seria usado com período de duração: "for ten years".' },
+  { id: 'ing03', s: 'ing', d: 2, q: 'Which option is the passive voice of: "The crew is repairing the hull."?', opts: ['The hull is repaired by the crew.', 'The hull is being repaired by the crew.', 'The hull was being repaired by the crew.', 'The hull has been repaired by the crew.', 'The hull is repairing by the crew.'], a: 1,
+    exp: '1) A voz ativa está no present continuous (is repairing).\n2) Passiva do present continuous: am/is/are + BEING + particípio.\n3) "The hull is being repaired by the crew."' },
+  { id: 'ing04', s: 'ing', d: 2, q: '"The cadets are looking forward to the training cruise."\nThe phrasal verb "look forward to" means:', opts: ['lembrar com nostalgia', 'aguardar com expectativa positiva', 'procurar algo perdido', 'cuidar de alguém', 'desprezar algo'], a: 1,
+    exp: '1) "Look forward to" = aguardar ansiosamente / com satisfação.\n2) Atenção: o "to" é preposição, então se usa substantivo ou gerúndio depois: "looking forward to sailing".' },
+  { id: 'ing05', s: 'ing', d: 2, q: 'Choose the correct option:\n"___ the heavy storm, the crew kept the ship on course."', opts: ['Although', 'Despite', 'Because', 'Unless', 'However'], a: 1,
+    exp: '1) A lacuna é seguida de um sintagma nominal ("the heavy storm"), não de uma oração.\n2) "Despite" (apesar de) + substantivo é a forma correta.\n3) "Although" exigiria sujeito + verbo: "Although there was a heavy storm…".' },
+  { id: 'ing06', s: 'ing', d: 3, q: 'Choose the correct reported speech:\nHe said: "I will sail tomorrow."', opts: ['He said he will sail tomorrow.', 'He said he would sail the following day.', 'He said I would sail the next day.', 'He said he sails the following day.', 'He told that he would sailed tomorrow.'], a: 1,
+    exp: '1) "will" passa para "would" (backshift).\n2) O pronome "I" passa para "he".\n3) "tomorrow" vira "the following day" / "the next day".' },
+  { id: 'ing07', s: 'ing', d: 2, q: '"The officer was very sensible during the crisis."\nThe word "sensible" means:', opts: ['sensível', 'sensato', 'sentimental', 'sensacional', 'frágil'], a: 1,
+    exp: '1) "Sensible" é um falso cognato: significa SENSATO, prudente.\n2) "Sensível" em inglês é "sensitive".' },
+  { id: 'ing08', s: 'ing', d: 3, q: 'Choose the correct relative pronoun:\n"The admiral ___ ship we visited is retiring next year."', opts: ['who', 'whom', 'whose', 'which', 'that'], a: 2,
+    exp: '1) A lacuna indica posse: o navio pertence ao almirante.\n2) O pronome relativo de posse é "whose" (cujo): "The admiral whose ship we visited…".' },
+
+  // ---------------- REDAÇÃO ----------------
+  { id: 'red01', s: 'red', d: 1, q: 'Em um texto dissertativo-argumentativo, a tese corresponde:', opts: ['ao resumo dos argumentos feito na conclusão', 'ao ponto de vista central que o autor se propõe a defender', 'à citação de uma autoridade no assunto', 'à narração de um fato ilustrativo', 'ao título escolhido para o texto'], a: 1,
+    exp: '1) A tese é a opinião central defendida, normalmente apresentada na introdução.\n2) Todo o desenvolvimento deve sustentá-la com argumentos; a conclusão a retoma.' },
+  { id: 'red02', s: 'red', d: 2, q: 'No período "O país possui vasto litoral; portanto, deve investir em defesa marítima", o conectivo "portanto" estabelece relação de:', opts: ['adição', 'oposição', 'conclusão', 'causa', 'concessão'], a: 2,
+    exp: '1) "Portanto" é conjunção coordenativa conclusiva (equivale a "logo", "por isso", "por conseguinte").\n2) A segunda oração é uma conclusão lógica da primeira.' },
+  { id: 'red03', s: 'red', d: 2, q: 'Qual estratégia é mais adequada para a conclusão de um texto dissertativo-argumentativo?', opts: ['Apresentar um argumento novo, ainda não discutido', 'Retomar a tese e propor uma síntese ou solução coerente com o desenvolvimento', 'Mudar para a 1ª pessoa com linguagem informal', 'Terminar com uma pergunta sem relação com a tese', 'Copiar literalmente a introdução'], a: 1,
+    exp: '1) A conclusão fecha o raciocínio: retoma a tese e apresenta síntese ou proposta.\n2) Argumentos novos na conclusão quebram a progressão; cópia da introdução é redundância.' },
+  { id: 'red04', s: 'red', d: 2, q: 'Em "A Marinha investiu em novos submarinos. Esses equipamentos ampliam a defesa da Amazônia Azul", a expressão "Esses equipamentos" retoma:', opts: ['a Marinha', 'o investimento', 'os submarinos', 'a defesa', 'a Amazônia Azul'], a: 2,
+    exp: '1) Trata-se de coesão referencial por substituição (hiperônimo).\n2) "Esses equipamentos" retoma "novos submarinos", evitando repetição.' },
+  { id: 'red05', s: 'red', d: 3, q: 'Identifique a falha argumentativa em: "Esse projeto de defesa é ruim porque quem o propôs nunca serviu às Forças Armadas."', opts: ['Generalização apressada', 'Ataque à pessoa (ad hominem)', 'Falso dilema', 'Apelo à autoridade', 'Ladeira escorregadia'], a: 1,
+    exp: '1) O argumento ataca o autor da proposta, e não o conteúdo do projeto.\n2) Essa falácia é o "ad hominem". Em redação, critique ideias com dados e fundamentos.' }
+];
+const QUESTION_MAP = Object.fromEntries(QUESTIONS.map(q => [q.id, q]));
+
+const DAYS = [
+  { k: 'seg', n: 'Segunda' }, { k: 'ter', n: 'Terça' }, { k: 'qua', n: 'Quarta' }, { k: 'qui', n: 'Quinta' },
+  { k: 'sex', n: 'Sexta' }, { k: 'sab', n: 'Sábado' }, { k: 'dom', n: 'Domingo' }
+];
+const JS_DAY_TO_KEY = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
+
+const TIMER_MODES = {
+  focus: { label: 'Foco',        icon: 'fa-crosshairs',   color: '#071d41' },
+  short: { label: 'Pausa Curta', icon: 'fa-mug-hot',      color: '#059669' },
+  long:  { label: 'Pausa Longa', icon: 'fa-couch',        color: '#1d4f9c' },
+  free:  { label: 'Livre',       icon: 'fa-stopwatch',    color: '#c59b27' }
+};
+
+/* =====================================================================
+   2. PERSISTÊNCIA (localStorage robusto)
+   - Testa disponibilidade (modo privado / bloqueio de cookies)
+   - JSON corrompido → tenta a cópia de segurança (last-known-good)
+   - Erro de cota → avisa o usuário
+   - Dados carregados passam por sanitização contra o esquema padrão
+   ===================================================================== */
+const STORAGE_KEY = 'logicAcademy.escolaNaval.v1';
+const BACKUP_KEY = STORAGE_KEY + '.backup';
+const SCHEMA_VERSION = 1;
+
+const Store = (() => {
+  let available = false;
+  try {
+    const t = '__la_test__';
+    window.localStorage.setItem(t, t);
+    window.localStorage.removeItem(t);
+    available = true;
+  } catch (e) {
+    console.warn('[Store] localStorage indisponível:', e);
+  }
+
+  function read(key) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return { ok: true, data: null };
+      return { ok: true, data: JSON.parse(raw), raw };
+    } catch (e) {
+      console.error('[Store] Falha ao ler/parsear', key, e);
+      return { ok: false, data: null };
+    }
+  }
+
+  return {
+    get available() { return available; },
+
+    /** Carrega o estado; usa o backup se o principal estiver corrompido. */
+    load() {
+      if (!available) return { data: null, source: 'none' };
+      const main = read(STORAGE_KEY);
+      if (main.ok && main.data && typeof main.data === 'object') {
+        // Guarda a última versão boa como backup
+        try { localStorage.setItem(BACKUP_KEY, main.raw); } catch (_) { /* ignora */ }
+        return { data: main.data, source: 'main' };
+      }
+      if (!main.ok) {
+        // Preserva o conteúdo corrompido para diagnóstico em vez de descartá-lo
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) localStorage.setItem(STORAGE_KEY + '.corrupt', raw);
+        } catch (_) { /* ignora */ }
+      }
+      const backup = read(BACKUP_KEY);
+      if (backup.ok && backup.data && typeof backup.data === 'object') {
+        return { data: backup.data, source: 'backup' };
+      }
+      return { data: null, source: main.ok ? 'empty' : 'corrupt' };
+    },
+
+    /** Salva o estado. Retorna true/false. */
+    save(state) {
+      if (!available) return false;
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        return true;
+      } catch (e) {
+        console.error('[Store] Falha ao salvar:', e);
+        const quota = e && (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014);
+        toast(quota ? 'Armazenamento cheio: exporte um backup e limpe dados antigos.' : 'Não foi possível salvar os dados.', 'error');
+        return false;
+      }
+    },
+
+    clear() {
+      if (!available) return;
+      try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(BACKUP_KEY); } catch (_) { /* ignora */ }
+    }
+  };
+})();
+
+/* =====================================================================
+   3. ESTADO + UTILITÁRIOS
+   ===================================================================== */
+
+function defaultExamDate() {
+  // Data estimada (editável): meados do próximo ano
+  const y = new Date().getFullYear() + 1;
+  return `${y}-06-20`;
+}
+
+function createDefaultState() {
+  const plan = {};
+  DAYS.forEach(d => { plan[d.k] = []; });
+  return {
+    version: SCHEMA_VERSION,
+    createdAt: Date.now(),
+    examDate: defaultExamDate(),
+    settings: { sound: true, autoStart: false, dailyGoalMin: 240, durations: { focus: 25, short: 5, long: 15 } },
+    studyLog: {},       // { 'AAAA-MM-DD': { total: seg, bySubject: { mat: seg, ... } } }
+    edital: {},         // { 'mat.limites': { teoria, resumo, questoes, revisado } }
+    questionStats: {},  // { qid: { attempts, correct, last, lastCorrect, ts } }
+    simulados: [],      // [{ date, total, correct, subject, diff, durationSec }]
+    plan,               // { seg: [{ id, subject, goal, minutes, done }], ... }
+    timer: { mode: 'focus', running: false, endAt: null, remaining: 25 * 60, freeMs: 0, lastTick: null, subject: 'mat', cycles: 0 }
+  };
+}
+
+const isObj = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+const num = (v, def, min = -Infinity, max = Infinity) => (typeof v === 'number' && isFinite(v) ? Math.min(max, Math.max(min, v)) : def);
+
+/** Valida e normaliza dados vindos do storage/backup. Nunca lança exceção. */
+function sanitizeState(raw) {
+  const d = createDefaultState();
+  if (!isObj(raw)) return d;
+  try {
+    if (typeof raw.examDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw.examDate)) d.examDate = raw.examDate;
+    if (typeof raw.createdAt === 'number') d.createdAt = raw.createdAt;
+
+    if (isObj(raw.settings)) {
+      const s = raw.settings;
+      d.settings.sound = s.sound !== false;
+      d.settings.autoStart = s.autoStart === true;
+      d.settings.dailyGoalMin = num(s.dailyGoalMin, 240, 15, 960);
+      if (isObj(s.durations)) {
+        d.settings.durations.focus = num(s.durations.focus, 25, 1, 180);
+        d.settings.durations.short = num(s.durations.short, 5, 1, 60);
+        d.settings.durations.long = num(s.durations.long, 15, 1, 90);
+      }
+    }
+
+    if (isObj(raw.studyLog)) {
+      for (const [day, v] of Object.entries(raw.studyLog)) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !isObj(v)) continue;
+        const entry = { total: num(v.total, 0, 0), bySubject: {} };
+        if (isObj(v.bySubject)) for (const k of SUBJECT_KEYS) if (v.bySubject[k]) entry.bySubject[k] = num(v.bySubject[k], 0, 0);
+        d.studyLog[day] = entry;
+      }
+    }
+
+    if (isObj(raw.edital)) {
+      for (const [id, v] of Object.entries(raw.edital)) {
+        if (!isObj(v)) continue;
+        const e = {};
+        STATUS_FIELDS.forEach(f => { e[f.key] = v[f.key] === true; });
+        d.edital[id] = e;
+      }
+    }
+
+    if (isObj(raw.questionStats)) {
+      for (const [id, v] of Object.entries(raw.questionStats)) {
+        if (!QUESTION_MAP[id] || !isObj(v)) continue;
+        const attempts = num(v.attempts, 0, 0);
+        d.questionStats[id] = {
+          attempts, correct: num(v.correct, 0, 0, attempts),
+          last: typeof v.last === 'number' ? v.last : null,
+          lastCorrect: typeof v.lastCorrect === 'boolean' ? v.lastCorrect : null,
+          ts: num(v.ts, 0)
+        };
+      }
+    }
+
+    if (Array.isArray(raw.simulados)) {
+      d.simulados = raw.simulados.filter(isObj).slice(-200).map(s => ({
+        date: num(s.date, Date.now()), total: num(s.total, 0, 0), correct: num(s.correct, 0, 0),
+        subject: typeof s.subject === 'string' ? s.subject : 'all', diff: typeof s.diff === 'string' ? s.diff : 'all',
+        durationSec: num(s.durationSec, 0, 0)
+      }));
+    }
+
+    if (isObj(raw.plan)) {
+      DAYS.forEach(({ k }) => {
+        if (!Array.isArray(raw.plan[k])) return;
+        d.plan[k] = raw.plan[k].filter(isObj).slice(0, 30).map(it => ({
+          id: typeof it.id === 'string' ? it.id : uid(),
+          subject: SUBJECTS[it.subject] ? it.subject : 'mat',
+          goal: typeof it.goal === 'string' ? it.goal.slice(0, 140) : '',
+          minutes: num(it.minutes, 60, 0, 720),
+          done: it.done === true
+        }));
+      });
+    }
+
+    if (isObj(raw.timer)) {
+      const t = raw.timer;
+      d.timer.mode = TIMER_MODES[t.mode] ? t.mode : 'focus';
+      d.timer.subject = SUBJECTS[t.subject] ? t.subject : 'mat';
+      d.timer.cycles = num(t.cycles, 0, 0);
+      d.timer.running = t.running === true;
+      d.timer.endAt = typeof t.endAt === 'number' ? t.endAt : null;
+      d.timer.remaining = num(t.remaining, d.settings.durations[d.timer.mode] * 60 || 0, 0);
+      d.timer.freeMs = num(t.freeMs, 0, 0);
+      d.timer.lastTick = typeof t.lastTick === 'number' ? t.lastTick : null;
+      if (d.timer.running && d.timer.mode !== 'free' && !d.timer.endAt) d.timer.running = false;
+    }
+  } catch (e) {
+    console.error('[sanitizeState] Erro inesperado, usando padrão parcial:', e);
+  }
+  return d;
+}
+
+/* ---------- Estado global ---------- */
+let S;
+const loaded = Store.load();
+S = sanitizeState(loaded.data);
+
+let saveTimeout = null;
+/** Salva imediatamente (consolidando o tempo de estudo pendente). */
+function saveNow() {
+  clearTimeout(saveTimeout);
+  commitPendingStudy();
+  Store.save(S);
+}
+/** Salva com debounce (para interações rápidas). */
+function saveSoon() {
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(saveNow, 300);
+}
+
+/* ---------- Utilitários ---------- */
+function uid() { return Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4); }
+function esc(str) {
+  return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function pad(n) { return String(n).padStart(2, '0'); }
+function dateKey(d = new Date()) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+function parseDateKey(k) { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); }
+function todayDayKey() { return JS_DAY_TO_KEY[new Date().getDay()]; }
+function fmtClock(sec) {
+  sec = Math.max(0, Math.round(sec));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+}
+function fmtDuration(sec) {
+  sec = Math.max(0, Math.round(sec));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60);
+  if (h === 0) return `${m}min`;
+  return m ? `${h}h ${pad(m)}min` : `${h}h`;
+}
+function pct(a, b) { return b > 0 ? Math.round((a / b) * 100) : 0; }
+function fmtDateLong(k) {
+  try { return parseDateKey(k).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }); }
+  catch (_) { return k; }
+}
+function subjectBadge(k, extra = '') {
+  const s = SUBJECTS[k];
+  return `<span class="chip ${extra}" style="background:${s.color}14;color:${s.color}"><i class="fa-solid ${s.icon}"></i>${s.name}</span>`;
+}
+function progressBar(p, color = '#071d41', h = '') {
+  return `<div class="bar ${h}"><span style="width:${Math.min(100, Math.max(0, p))}%;background:${color}"></span></div>`;
+}
+
+/* =====================================================================
+   4. GAMIFICAÇÃO / ESTATÍSTICAS
+   ===================================================================== */
+
+function addStudy(seconds, subject) {
+  if (seconds <= 0) return;
+  const k = dateKey();
+  const e = S.studyLog[k] || (S.studyLog[k] = { total: 0, bySubject: {} });
+  e.total += seconds;
+  e.bySubject[subject] = (e.bySubject[subject] || 0) + seconds;
+}
+
+function totalStudySeconds() { return Object.values(S.studyLog).reduce((a, e) => a + (e.total || 0), 0); }
+function todaySeconds() { return (S.studyLog[dateKey()] || { total: 0 }).total + Math.floor(pendingStudyMs / 1000); }
+
+function studyBySubjectAll() {
+  const out = {}; SUBJECT_KEYS.forEach(k => out[k] = 0);
+  Object.values(S.studyLog).forEach(e => { for (const k in e.bySubject) if (k in out) out[k] += e.bySubject[k]; });
+  return out;
+}
+
+function streakDays() {
+  let streak = 0;
+  const d = new Date();
+  // Se hoje ainda não estudou, a sequência conta a partir de ontem
+  if (!((S.studyLog[dateKey(d)] || {}).total >= 60)) d.setDate(d.getDate() - 1);
+  while ((S.studyLog[dateKey(d)] || {}).total >= 60) { streak++; d.setDate(d.getDate() - 1); }
+  return streak;
+}
+
+function questionTotals(filterFn = () => true) {
+  let answered = 0, correct = 0, unique = 0;
+  for (const [id, st] of Object.entries(S.questionStats)) {
+    const q = QUESTION_MAP[id];
+    if (!q || !filterFn(q)) continue;
+    answered += st.attempts; correct += st.correct; if (st.attempts > 0) unique++;
+  }
+  return { answered, correct, unique, acc: pct(correct, answered) };
+}
+
+function editalProgress(subj) {
+  const keys = subj ? [subj] : SUBJECT_KEYS;
+  let done = 0, total = 0, topicsDone = 0, topics = 0;
+  keys.forEach(k => {
+    EDITAL[k].forEach(([slug]) => {
+      const e = S.edital[`${k}.${slug}`];
+      const c = e ? STATUS_FIELDS.filter(f => e[f.key]).length : 0;
+      done += c; total += STATUS_FIELDS.length; topics++;
+      if (c === STATUS_FIELDS.length) topicsDone++;
+    });
+  });
+  return { done, total, pct: pct(done, total), topicsDone, topics };
+}
+
+function computeXP() {
+  const hours = totalStudySeconds() / 3600;
+  const q = questionTotals();
+  const checks = editalProgress().done;
+  return Math.floor(hours * XP_RULES.perStudyHour + q.answered * XP_RULES.perAnswer + q.correct * XP_RULES.perCorrect +
+    checks * XP_RULES.perEditalCheck + S.simulados.length * XP_RULES.perSimulado);
+}
+
+function getRank(xp) {
+  let idx = 0;
+  RANKS.forEach((r, i) => { if (xp >= r.xp) idx = i; });
+  const cur = RANKS[idx], next = RANKS[idx + 1] || null;
+  const progress = next ? pct(xp - cur.xp, next.xp - cur.xp) : 100;
+  return { idx, cur, next, progress, xp };
+}
+
+/* Detecta promoção para comemorar */
+let lastRankIdx = getRank(computeXP()).idx;
+function checkPromotion() {
+  const r = getRank(computeXP());
+  if (r.idx > lastRankIdx) {
+    toast(`<i class="fa-solid ${r.cur.icon} mr-1"></i> Promoção! Agora você é <strong>${r.cur.name}</strong>.`, 'gold', 5000);
+    Sound.play('promo');
+  }
+  lastRankIdx = r.idx;
+}
+
+function daysUntilExam() {
+  const today = parseDateKey(dateKey());
+  const exam = parseDateKey(S.examDate);
+  return Math.round((exam - today) / 86400000);
+}
+
+/* =====================================================================
+   5. CRONÔMETRO + SOM (Web Audio API)
+   - Baseado em timestamps (preciso mesmo com a aba em segundo plano)
+   - Estado persiste: ao recarregar, o ciclo continua de onde estava
+   - Tempo de Foco e Livre é registrado automaticamente no dia
+   ===================================================================== */
+
+const Sound = (() => {
+  let ctx = null;
+  function getCtx() {
+    try {
+      if (!ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; ctx = new AC(); }
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    } catch (e) { console.warn('[Sound]', e); return null; }
+  }
+  function beep(c, freq, start, dur, type = 'sine', vol = 0.25) {
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, c.currentTime + start);
+    g.gain.exponentialRampToValueAtTime(vol, c.currentTime + start + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + start + dur);
+    o.connect(g).connect(c.destination);
+    o.start(c.currentTime + start); o.stop(c.currentTime + start + dur + 0.05);
+  }
+  const PATTERNS = {
+    // Fim do foco: toque de "sino de bordo" (pares de badaladas)
+    focusEnd: c => { [0, 0.35, 1.0, 1.35].forEach(t => { beep(c, 880, t, 0.6, 'sine', 0.3); beep(c, 1320, t, 0.4, 'sine', 0.08); }); },
+    // Fim da pausa: chamada ascendente
+    breakEnd: c => { [523, 659, 784, 1047].forEach((f, i) => beep(c, f, i * 0.16, 0.3, 'triangle', 0.25)); },
+    promo: c => { [523, 659, 784, 1047, 1319].forEach((f, i) => beep(c, f, i * 0.11, 0.35, 'triangle', 0.2)); },
+    click: c => beep(c, 660, 0, 0.08, 'sine', 0.12)
+  };
+  return {
+    unlock() { getCtx(); },
+    play(name, force = false) {
+      if (!S.settings.sound && !force) return;
+      const c = getCtx(); if (!c || !PATTERNS[name]) return;
+      try { PATTERNS[name](c); } catch (e) { console.warn('[Sound]', e); }
+    }
+  };
+})();
+
+let pendingStudyMs = 0;           // tempo estudado ainda não consolidado no log
+const MAX_RESTORE_GAP = 3 * 3600e3; // limite de crédito ao reabrir com o livre rodando
+
+function modeDuration(mode) { return (S.settings.durations[mode] || 0) * 60; }
+function countsAsStudy(mode) { return mode === 'focus' || mode === 'free'; }
+
+/** Consolida o tempo pendente no log do dia (sem salvar). */
+function commitPendingStudy() {
+  const secs = Math.floor(pendingStudyMs / 1000);
+  if (secs > 0) {
+    pendingStudyMs -= secs * 1000;
+    addStudy(secs, S.timer.subject);
+  }
+}
+
+/** Processa a passagem do tempo desde o último tick. */
+function timerTick() {
+  const t = S.timer;
+  if (!t.running) return;
+  const now = Date.now();
+  let delta = Math.max(0, now - (t.lastTick || now));
+  if (delta > MAX_RESTORE_GAP) delta = MAX_RESTORE_GAP;
+  t.lastTick = now;
+
+  if (t.mode === 'free') {
+    t.freeMs += delta;
+    pendingStudyMs += delta;
+  } else {
+    const remainingMs = t.endAt - now;
+    if (t.mode === 'focus') {
+      const overshoot = Math.max(0, -remainingMs); // não conta tempo além do fim do ciclo
+      pendingStudyMs += Math.max(0, delta - overshoot);
+    }
+    t.remaining = Math.max(0, Math.ceil(remainingMs / 1000));
+    if (remainingMs <= 0) { finishCycle(); return; }
+  }
+  if (pendingStudyMs >= 15000) saveNow(); // consolida a cada ~15 s
+  updateTimerUI();
+}
+
+function timerStart() {
+  const t = S.timer;
+  if (t.running) return;
+  Sound.unlock();
+  const now = Date.now();
+  if (t.mode !== 'free') {
+    if (t.remaining <= 0) t.remaining = modeDuration(t.mode);
+    t.endAt = now + t.remaining * 1000;
+  }
+  t.lastTick = now;
+  t.running = true;
+  saveNow();
+  renderTimerControls();
+}
+
+function timerPause() {
+  const t = S.timer;
+  if (!t.running) return;
+  timerTick();
+  t.running = false;
+  t.endAt = null;
+  saveNow();
+  checkPromotion();
+  renderTimerControls();
+}
+
+function timerReset() {
+  const t = S.timer;
+  if (t.running) timerTick();
+  t.running = false; t.endAt = null;
+  if (t.mode === 'free') {
+    const saved = Math.round(t.freeMs / 1000);
+    t.freeMs = 0;
+    if (saved >= 60) toast(`Sessão livre registrada: ${fmtDuration(saved)} de ${SUBJECTS[t.subject].name}.`, 'success');
+  } else {
+    t.remaining = modeDuration(t.mode);
+  }
+  saveNow();
+  checkPromotion();
+  render();
+}
+
+function setTimerMode(mode, silent = false) {
+  const t = S.timer;
+  if (t.running) timerTick();
+  t.running = false; t.endAt = null;
+  t.mode = mode;
+  if (mode === 'free') t.freeMs = 0; else t.remaining = modeDuration(mode);
+  saveNow();
+  if (!silent) render();
+}
+
+function finishCycle() {
+  const t = S.timer;
+  const finished = t.mode;
+  t.running = false; t.endAt = null; t.remaining = 0;
+  saveNow();
+  if (finished === 'focus') {
+    t.cycles++;
+    Sound.play('focusEnd');
+    const next = t.cycles % 4 === 0 ? 'long' : 'short';
+    toast(`<i class="fa-solid fa-bell mr-1"></i> Ciclo de foco concluído! Hora da ${TIMER_MODES[next].label.toLowerCase()}.`, 'gold', 6000);
+    setTimerMode(next, true);
+  } else {
+    Sound.play('breakEnd');
+    toast('<i class="fa-solid fa-anchor mr-1"></i> Pausa encerrada. De volta ao posto!', 'info', 6000);
+    setTimerMode('focus', true);
+  }
+  checkPromotion();
+  if (S.settings.autoStart) timerStart();
+  render();
+}
+
+function timerSkip() {
+  const t = S.timer;
+  if (t.mode === 'free') return;
+  if (t.running) timerTick();
+  if (t.mode === 'focus') { t.cycles++; setTimerMode(t.cycles % 4 === 0 ? 'long' : 'short'); }
+  else setTimerMode('focus');
+}
+
+function timerSetSubject(subj) {
+  if (!SUBJECTS[subj]) return;
+  if (S.timer.running) timerTick();
+  commitPendingStudy(); // o tempo anterior fica com a matéria anterior
+  S.timer.subject = subj;
+  saveNow();
+}
+
+function timerDisplaySeconds() {
+  const t = S.timer;
+  return t.mode === 'free' ? Math.floor(t.freeMs / 1000) : t.remaining;
+}
+
+/* Atualiza apenas os elementos do cronômetro (sem re-render completo) */
+function updateTimerUI() {
+  const t = S.timer;
+  const sec = timerDisplaySeconds();
+  const display = document.getElementById('timer-display');
+  if (display) display.textContent = fmtClock(sec);
+  const ring = document.getElementById('timer-ring');
+  if (ring) {
+    const C = 2 * Math.PI * 118;
+    let frac;
+    if (t.mode === 'free') frac = (sec % 3600) / 3600;
+    else { const total = modeDuration(t.mode) || 1; frac = sec / total; }
+    ring.style.strokeDashoffset = String(C * (1 - frac));
+  }
+  const todayEl = document.getElementById('timer-today');
+  if (todayEl) todayEl.textContent = fmtDuration(todaySeconds());
+
+  // Pill no cabeçalho + título da aba
+  const pill = document.getElementById('timer-pill');
+  if (pill) {
+    const show = t.running && currentView !== 'timer';
+    pill.classList.toggle('hidden', !show);
+    pill.classList.toggle('inline-flex', show);
+    document.getElementById('timer-pill-text').textContent = `${TIMER_MODES[t.mode].label} · ${fmtClock(sec)}`;
+  }
+  document.title = t.running ? `${fmtClock(sec)} · ${TIMER_MODES[t.mode].label} — Logic Academy` : 'Logic Academy · Escola Naval';
+}
+
+function renderTimerControls() {
+  const btn = document.getElementById('timer-toggle');
+  if (btn) {
+    const r = S.timer.running;
+    btn.innerHTML = r ? '<i class="fa-solid fa-pause"></i> Pausar' : '<i class="fa-solid fa-play"></i> Iniciar';
+    btn.className = r ? 'btn-ghost !px-8 !py-3.5 !text-base' : 'btn-gold !px-8 !py-3.5 !text-base';
+  }
+  updateTimerUI();
+}
+
+/* =====================================================================
+   6. VIEWS
+   ===================================================================== */
+
+const NAV = [
+  { view: 'dashboard', label: 'Painel',     icon: 'fa-gauge-high' },
+  { view: 'timer',     label: 'Cronômetro', icon: 'fa-stopwatch' },
+  { view: 'edital',    label: 'Edital',     icon: 'fa-list-check' },
+  { view: 'questoes',  label: 'Questões',   icon: 'fa-circle-question' },
+  { view: 'plano',     label: 'Plano',      icon: 'fa-calendar-week' }
+];
+const VIEW_TITLES = { dashboard: 'Painel de Comando', timer: 'Cronômetro de Estudos', edital: 'Edital Verticalizado', questoes: 'Banco de Questões', plano: 'Plano Semanal' };
+
+let currentView = 'dashboard';
+let editalTab = 'mat';
+
+/* Estado de UI (não persistido) do banco de questões */
+const QV = {
+  mode: 'treino',
+  filters: { subject: 'all', diff: 'all', status: 'all' },
+  list: [], idx: 0, selected: null, revealed: false,
+  sim: null // { ids, answers, idx, startedAt, finished, subject, diff, result }
+};
+
+function render() {
+  try {
+    const main = document.getElementById('view');
+    const fn = { dashboard: viewDashboard, timer: viewTimer, edital: viewEdital, questoes: viewQuestoes, plano: viewPlano }[currentView] || viewDashboard;
+    main.innerHTML = `<div class="fade-in">${fn()}</div>`;
+    document.getElementById('view-title').textContent = VIEW_TITLES[currentView];
+    renderNav();
+    renderRankWidgets();
+    updateTimerUI();
+  } catch (e) {
+    console.error('[render]', e);
+    document.getElementById('view').innerHTML = `<div class="card card-pad text-rose-700"><strong>Erro ao exibir a tela.</strong> Seus dados estão preservados. Recarregue a página.<pre class="mt-2 text-xs whitespace-pre-wrap">${esc(e.message)}</pre></div>`;
+  }
+}
+
+function renderNav() {
+  document.getElementById('side-nav').innerHTML = NAV.map(n => `
+    <button data-action="go" data-view="${n.view}" class="nav-item w-full ${currentView === n.view ? 'active' : ''}">
+      <i class="fa-solid ${n.icon} w-5 text-center"></i>${n.label}
+    </button>`).join('');
+  document.getElementById('bottom-nav-items').innerHTML = NAV.map(n => `
+    <button data-action="go" data-view="${n.view}" class="flex flex-col items-center gap-1 py-2.5 text-[10.5px] font-medium ${currentView === n.view ? 'text-gold-400' : 'text-navy-100/70'}">
+      <i class="fa-solid ${n.icon} text-[17px]"></i>${n.label}
+    </button>`).join('');
+}
+
+function renderRankWidgets() {
+  const r = getRank(computeXP());
+  document.getElementById('side-rank').innerHTML = `
+    <button data-action="open-ranks" class="w-full text-left">
+      <div class="flex items-center gap-3">
+        <div class="grid h-10 w-10 place-items-center rounded-full bg-gold-500/20 text-gold-300"><i class="fa-solid ${r.cur.icon}"></i></div>
+        <div class="min-w-0">
+          <div class="text-[10px] font-semibold uppercase tracking-widest text-navy-200/70">Patente</div>
+          <div class="truncate text-sm font-semibold text-white">${r.cur.name}</div>
+        </div>
+      </div>
+      <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"><div class="h-full rounded-full bg-gold-400" style="width:${r.progress}%"></div></div>
+      <div class="mt-1.5 text-[11px] text-navy-200/70">${r.xp} XP${r.next ? ` · próx.: ${r.next.name}` : ' · topo da carreira'}</div>
+    </button>`;
+  document.getElementById('header-rank').innerHTML = `
+    <button data-action="open-ranks" class="chip bg-navy-900 text-gold-300 py-1.5 px-3"><i class="fa-solid ${r.cur.icon}"></i>${r.cur.name}</button>`;
+}
+
+/* ---------------------- 6.1 DASHBOARD ---------------------- */
+function viewDashboard() {
+  const r = getRank(computeXP());
+  const days = daysUntilExam();
+  const totalSec = totalStudySeconds() + Math.floor(pendingStudyMs / 1000);
+  const q = questionTotals();
+  const ed = editalProgress();
+  const todaySec = todaySeconds();
+  const goalSec = S.settings.dailyGoalMin * 60;
+  const streak = streakDays();
+
+  // Últimos 7 dias
+  const week = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const k = dateKey(d);
+    week.push({ k, label: d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', ''), sec: k === dateKey() ? todaySec : (S.studyLog[k] || {}).total || 0, today: i === 0 });
+  }
+  const maxSec = Math.max(goalSec, ...week.map(w => w.sec), 1);
+  const weekTotal = week.reduce((a, w) => a + w.sec, 0);
+
+  const countdownHTML = days > 0
+    ? `<div class="flex items-end gap-3"><span class="font-display text-6xl sm:text-7xl font-bold leading-none text-gold-400">${days}</span><span class="pb-2 text-lg font-medium text-navy-100">dia${days === 1 ? '' : 's'}</span></div>
+       <div class="mt-2 text-sm text-navy-100/80">≈ ${Math.floor(days / 7)} semana${Math.floor(days / 7) === 1 ? '' : 's'} e ${days % 7} dia${days % 7 === 1 ? '' : 's'}</div>`
+    : days === 0
+      ? `<div class="font-display text-4xl font-bold text-gold-400">É HOJE!</div><div class="mt-2 text-sm text-navy-100/80">Calma, confiança e boa prova. Bravo Zulu!</div>`
+      : `<div class="font-display text-3xl font-bold text-gold-400">Prova realizada</div><div class="mt-2 text-sm text-navy-100/80">Atualize a data para o próximo concurso.</div>`;
+
+  const todayPlan = S.plan[todayDayKey()] || [];
+
+  return `
+  <!-- Saudação -->
+  <div class="mb-6 flex flex-col gap-1">
+    <p class="text-sm font-medium text-slate-500">${esc(fmtDateLong(dateKey()))}</p>
+    <h2 class="font-display text-2xl sm:text-3xl font-semibold uppercase tracking-wide text-navy-900">Bom estudo, ${esc(r.cur.name)}!</h2>
+  </div>
+
+  <div class="grid gap-5 lg:grid-cols-3">
+    <!-- Contagem regressiva -->
+    <section class="relative overflow-hidden rounded-2xl bg-navy-900 p-6 text-white shadow-soft wave-bg lg:col-span-2">
+      <i class="fa-solid fa-anchor pointer-events-none absolute -right-6 -bottom-8 text-[170px] text-white/[.04]"></i>
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div class="text-[11px] font-semibold uppercase tracking-[.2em] text-gold-300">Contagem regressiva · CPAEN</div>
+          <div class="mt-1 text-sm text-navy-100/80"><i class="fa-regular fa-calendar mr-1"></i>${esc(fmtDateLong(S.examDate))}</div>
+        </div>
+        <button data-action="edit-exam-date" class="btn !px-3 !py-2 bg-white/10 text-white hover:bg-white/20"><i class="fa-solid fa-pen"></i><span class="hidden sm:inline">Editar data</span></button>
+      </div>
+      <div class="mt-5">${countdownHTML}</div>
+      <div class="stripe mt-6 w-40 opacity-80"></div>
+    </section>
+
+    <!-- Patente -->
+    <section class="card card-pad flex flex-col">
+      <div class="flex items-center justify-between">
+        <h3 class="section-title">Patente</h3>
+        <button data-action="open-ranks" class="text-xs font-semibold text-navy-600 hover:underline">Ver carreira</button>
+      </div>
+      <div class="mt-4 flex items-center gap-4">
+        <div class="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-navy-900 text-2xl text-gold-400 shadow-lg shadow-navy-900/20"><i class="fa-solid ${r.cur.icon}"></i></div>
+        <div class="min-w-0">
+          <div class="font-display text-xl font-semibold text-navy-900">${r.cur.name}</div>
+          <div class="text-sm text-slate-500">${r.cur.motto}</div>
+        </div>
+      </div>
+      <div class="mt-auto pt-5">
+        <div class="mb-1.5 flex justify-between text-xs font-medium text-slate-500"><span>${r.xp} XP</span><span>${r.next ? `${r.next.xp} XP · ${r.next.name}` : 'Máximo'}</span></div>
+        ${progressBar(r.progress, '#c59b27', '!h-2.5')}
+      </div>
+    </section>
+  </div>
+
+  <!-- Estatísticas -->
+  <div class="mt-5 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+    ${statCard('fa-clock', 'Horas de estudo', fmtDuration(totalSec), `${streak} dia${streak === 1 ? '' : 's'} seguidos`, '#1d4f9c')}
+    ${statCard('fa-file-circle-check', 'Simulados', S.simulados.length, S.simulados.length ? `Último: ${pct(S.simulados.at(-1).correct, S.simulados.at(-1).total)}%` : 'Nenhum ainda', '#7c3aed')}
+    ${statCard('fa-bullseye', 'Taxa de acerto', q.answered ? q.acc + '%' : '—', `${q.correct}/${q.answered} respostas`, '#059669')}
+    ${statCard('fa-list-check', 'Edital', ed.pct + '%', `${ed.topicsDone}/${ed.topics} tópicos completos`, '#c59b27')}
+  </div>
+
+  <div class="mt-5 grid gap-5 lg:grid-cols-3">
+    <!-- Progresso do edital -->
+    <section class="card card-pad lg:col-span-2">
+      <div class="flex items-center justify-between">
+        <h3 class="section-title">Progresso do Edital</h3>
+        <button data-action="go" data-view="edital" class="text-xs font-semibold text-navy-600 hover:underline">Abrir edital →</button>
+      </div>
+      <div class="mt-4">
+        <div class="mb-1.5 flex justify-between text-sm"><span class="font-semibold text-navy-900">Geral</span><span class="font-semibold text-navy-900">${ed.pct}%</span></div>
+        ${progressBar(ed.pct, 'linear-gradient(90deg,#071d41,#1d4f9c)', '!h-3')}
+      </div>
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        ${SUBJECT_KEYS.map(k => { const p = editalProgress(k); return `
+          <button data-action="go-edital" data-subject="${k}" class="text-left group">
+            <div class="mb-1.5 flex items-center justify-between text-sm">
+              <span class="font-medium text-slate-700 group-hover:text-navy-900"><i class="fa-solid ${SUBJECTS[k].icon} mr-1.5" style="color:${SUBJECTS[k].color}"></i>${SUBJECTS[k].name}</span>
+              <span class="text-slate-500">${p.pct}%</span>
+            </div>
+            ${progressBar(p.pct, SUBJECTS[k].color)}
+          </button>`; }).join('')}
+      </div>
+    </section>
+
+    <!-- Hoje -->
+    <section class="card card-pad">
+      <div class="flex items-center justify-between">
+        <h3 class="section-title">Hoje</h3>
+        <button data-action="go" data-view="timer" class="btn-gold !px-3 !py-1.5 !text-xs"><i class="fa-solid fa-play"></i>Estudar</button>
+      </div>
+      <div class="mt-4 flex items-end justify-between">
+        <div><div class="text-3xl font-bold text-navy-900">${fmtDuration(todaySec)}</div><div class="text-xs text-slate-500">de ${fmtDuration(goalSec)} (meta diária)</div></div>
+        <div class="text-sm font-semibold ${todaySec >= goalSec ? 'text-emerald-600' : 'text-slate-500'}">${pct(todaySec, goalSec)}%</div>
+      </div>
+      <div class="mt-2">${progressBar(pct(todaySec, goalSec), todaySec >= goalSec ? '#059669' : '#c59b27')}</div>
+      <div class="mt-5 text-xs font-semibold uppercase tracking-wide text-slate-500">Plano de ${DAYS.find(d => d.k === todayDayKey()).n.toLowerCase()}</div>
+      <ul class="mt-2 space-y-2">
+        ${todayPlan.length ? todayPlan.map(it => planItemHTML(todayDayKey(), it, true)).join('') :
+          `<li class="rounded-xl border border-dashed border-slate-300 p-3 text-center text-sm text-slate-500">Nada planejado. <button data-action="go" data-view="plano" class="font-semibold text-navy-600 hover:underline">Montar plano</button></li>`}
+      </ul>
+    </section>
+  </div>
+
+  <div class="mt-5 grid gap-5 lg:grid-cols-3">
+    <!-- Últimos 7 dias -->
+    <section class="card card-pad lg:col-span-2">
+      <div class="flex items-center justify-between">
+        <h3 class="section-title">Últimos 7 dias</h3>
+        <span class="text-sm text-slate-500">Total: <strong class="text-navy-900">${fmtDuration(weekTotal)}</strong></span>
+      </div>
+      <div class="relative mt-6 flex h-44 items-end gap-2 sm:gap-4">
+        <div class="pointer-events-none absolute inset-x-0 border-t border-dashed border-gold-500/60" style="bottom:calc(${(goalSec / maxSec) * 100}% * .82 + 1.5rem)">
+          <span class="absolute -top-5 right-0 text-[10px] font-semibold uppercase text-gold-600">meta</span>
+        </div>
+        ${week.map(w => `
+          <div class="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
+            <div class="text-[10px] font-semibold text-slate-500">${w.sec >= 60 ? fmtDuration(w.sec).replace('min', 'm') : ''}</div>
+            <div class="w-full max-w-[44px] rounded-t-lg ${w.today ? 'bg-gold-500' : 'bg-navy-800'}" style="height:calc(${(w.sec / maxSec) * 100}% * .82);min-height:${w.sec ? 4 : 2}px;opacity:${w.sec ? 1 : .15}"></div>
+            <div class="text-[11px] font-medium capitalize ${w.today ? 'text-navy-900' : 'text-slate-500'}">${w.label}</div>
+          </div>`).join('')}
+      </div>
+    </section>
+
+    <!-- Desempenho por matéria (questões + horas) -->
+    <section class="card card-pad">
+      <h3 class="section-title">Por matéria</h3>
+      <div class="mt-4 space-y-3.5">
+        ${(() => { const by = studyBySubjectAll(); return SUBJECT_KEYS.map(k => { const qt = questionTotals(qq => qq.s === k); return `
+          <div>
+            <div class="flex items-center justify-between text-sm"><span class="font-medium text-slate-700">${SUBJECTS[k].name}</span><span class="text-xs text-slate-500">${fmtDuration(by[k])} · ${qt.answered ? qt.acc + '% acerto' : 'sem questões'}</span></div>
+            <div class="mt-1.5">${progressBar(qt.acc, SUBJECTS[k].color)}</div>
+          </div>`; }).join(''); })()}
+      </div>
+    </section>
+  </div>`;
+}
+
+function statCard(icon, label, value, sub, color) {
+  return `
+  <div class="card p-4 sm:p-5">
+    <div class="flex items-center gap-2.5">
+      <div class="grid h-9 w-9 place-items-center rounded-xl" style="background:${color}14;color:${color}"><i class="fa-solid ${icon}"></i></div>
+      <div class="text-xs font-semibold uppercase tracking-wide text-slate-500 leading-tight">${label}</div>
+    </div>
+    <div class="mt-3 text-2xl sm:text-3xl font-bold text-navy-900">${value}</div>
+    <div class="mt-0.5 truncate text-xs text-slate-500">${sub}</div>
+  </div>`;
+}
+
+/* ---------------------- 6.2 CRONÔMETRO ---------------------- */
+function viewTimer() {
+  const t = S.timer;
+  const C = 2 * Math.PI * 118;
+  const m = TIMER_MODES[t.mode];
+  const todayLog = S.studyLog[dateKey()] || { bySubject: {} };
+  const goalSec = S.settings.dailyGoalMin * 60;
+
+  return `
+  <div class="grid gap-5 lg:grid-cols-3">
+    <section class="card card-pad lg:col-span-2">
+      <!-- Modos -->
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        ${Object.entries(TIMER_MODES).map(([k, v]) => `
+          <button data-action="timer-mode" data-mode="${k}" class="btn ${t.mode === k ? 'bg-navy-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+            <i class="fa-solid ${v.icon}"></i>${v.label}${k !== 'free' ? `<span class="text-[11px] opacity-60">${S.settings.durations[k]}′</span>` : ''}
+          </button>`).join('')}
+      </div>
+
+      <!-- Relógio -->
+      <div class="mt-8 flex flex-col items-center">
+        <div class="relative h-64 w-64 sm:h-72 sm:w-72">
+          <svg viewBox="0 0 260 260" class="h-full w-full -rotate-90">
+            <circle cx="130" cy="130" r="118" fill="none" stroke-width="12" class="ring-track" />
+            <circle id="timer-ring" cx="130" cy="130" r="118" fill="none" stroke-width="12" stroke-linecap="round"
+              stroke="${m.color === '#071d41' ? '#c59b27' : m.color}" stroke-dasharray="${C}" stroke-dashoffset="${C}" class="ring-prog" />
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <div class="text-xs font-semibold uppercase tracking-[.2em] text-slate-500"><i class="fa-solid ${m.icon} mr-1"></i>${m.label}</div>
+            <div id="timer-display" class="mt-1 font-display text-6xl sm:text-7xl font-semibold tabular-nums text-navy-900">${fmtClock(timerDisplaySeconds())}</div>
+            ${countsAsStudy(t.mode) ? `<div class="mt-2">${subjectBadge(t.subject)}</div>` : '<div class="mt-2 text-xs text-slate-500">Descanse a mente</div>'}
+          </div>
+        </div>
+
+        <!-- Ciclos -->
+        ${t.mode !== 'free' ? `
+        <div class="mt-5 flex items-center gap-2" title="Ciclos de foco (a cada 4, pausa longa)">
+          ${[0, 1, 2, 3].map(i => `<span class="h-2.5 w-2.5 rounded-full ${i < t.cycles % 4 ? 'bg-gold-500' : 'bg-slate-200'}"></span>`).join('')}
+          <span class="ml-2 text-xs text-slate-500">${t.cycles} ciclo${t.cycles === 1 ? '' : 's'} de foco</span>
+        </div>` : ''}
+
+        <!-- Controles -->
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <button data-action="timer-reset" class="btn-ghost !px-4 !py-3.5" title="${t.mode === 'free' ? 'Encerrar e salvar' : 'Reiniciar'}">
+            <i class="fa-solid ${t.mode === 'free' ? 'fa-floppy-disk' : 'fa-rotate-left'}"></i><span class="hidden sm:inline">${t.mode === 'free' ? 'Encerrar' : 'Reiniciar'}</span>
+          </button>
+          <button id="timer-toggle" data-action="timer-toggle" class="${t.running ? 'btn-ghost' : 'btn-gold'} !px-8 !py-3.5 !text-base">
+            ${t.running ? '<i class="fa-solid fa-pause"></i> Pausar' : '<i class="fa-solid fa-play"></i> Iniciar'}
+          </button>
+          ${t.mode !== 'free' ? `<button data-action="timer-skip" class="btn-ghost !px-4 !py-3.5" title="Pular etapa"><i class="fa-solid fa-forward-step"></i><span class="hidden sm:inline">Pular</span></button>` : ''}
+        </div>
+      </div>
+
+      <!-- Matéria + som -->
+      <div class="mt-8 grid gap-4 border-t border-slate-100 pt-6 sm:grid-cols-2">
+        <div>
+          <label class="label" for="timer-subject">Matéria em estudo</label>
+          <select id="timer-subject" data-change="timer-subject" class="input">
+            ${SUBJECT_KEYS.map(k => `<option value="${k}" ${t.subject === k ? 'selected' : ''}>${SUBJECTS[k].name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="flex items-end gap-3">
+          <button data-action="toggle-sound" class="btn-ghost flex-1 ${S.settings.sound ? '' : 'opacity-70'}">
+            <i class="fa-solid ${S.settings.sound ? 'fa-volume-high' : 'fa-volume-xmark'}"></i>Som ${S.settings.sound ? 'ligado' : 'desligado'}
+          </button>
+          <button data-action="test-sound" class="btn-ghost" title="Testar som"><i class="fa-solid fa-bell"></i></button>
+        </div>
+      </div>
+      <p class="mt-4 text-xs text-slate-500"><i class="fa-solid fa-circle-info mr-1"></i>O tempo dos modos <strong>Foco</strong> e <strong>Livre</strong> é registrado automaticamente no dia, mesmo se você recarregar a página.</p>
+    </section>
+
+    <!-- Hoje -->
+    <section class="card card-pad">
+      <h3 class="section-title">Registro de hoje</h3>
+      <div class="mt-4">
+        <div id="timer-today" class="text-4xl font-bold text-navy-900">${fmtDuration(todaySeconds())}</div>
+        <div class="text-xs text-slate-500">Meta: ${fmtDuration(goalSec)}</div>
+        <div class="mt-2">${progressBar(pct(todaySeconds(), goalSec), '#c59b27')}</div>
+      </div>
+      <div class="mt-6 space-y-3">
+        ${SUBJECT_KEYS.map(k => { const s = todayLog.bySubject[k] || 0; return `
+          <div class="flex items-center gap-3">
+            <div class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sm" style="background:${SUBJECTS[k].color}14;color:${SUBJECTS[k].color}"><i class="fa-solid ${SUBJECTS[k].icon}"></i></div>
+            <div class="flex-1">
+              <div class="flex justify-between text-sm"><span class="font-medium text-slate-700">${SUBJECTS[k].name}</span><span class="text-slate-500">${fmtDuration(s)}</span></div>
+              <div class="mt-1">${progressBar(pct(s, Math.max(1, todayLog.total || 0)), SUBJECTS[k].color, '!h-1.5')}</div>
+            </div>
+          </div>`; }).join('')}
+      </div>
+      <div class="mt-6 rounded-xl bg-navy-50 p-4 text-sm text-navy-800">
+        <div class="font-semibold"><i class="fa-solid fa-lightbulb mr-1 text-gold-600"></i>Técnica Pomodoro</div>
+        <p class="mt-1 text-navy-800/80">${S.settings.durations.focus} min de foco total + ${S.settings.durations.short} min de pausa. A cada 4 ciclos, uma pausa longa de ${S.settings.durations.long} min.</p>
+        <button data-action="add-manual" class="mt-3 text-xs font-semibold text-navy-600 hover:underline"><i class="fa-solid fa-plus mr-1"></i>Lançar tempo manualmente</button>
+      </div>
+    </section>
+  </div>`;
+}
+
+/* ---------------------- 6.3 EDITAL ---------------------- */
+function viewEdital() {
+  const all = editalProgress();
+  const p = editalProgress(editalTab);
+  const subj = SUBJECTS[editalTab];
+
+  return `
+  <section class="card card-pad">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h3 class="section-title">Edital Verticalizado · CPAEN</h3>
+        <p class="text-sm text-slate-500">Marque cada etapa por tópico. Baseado nos conteúdos recentes — confira sempre o edital vigente.</p>
+      </div>
+      <div class="sm:w-64">
+        <div class="mb-1 flex justify-between text-sm"><span class="font-semibold text-navy-900">Progresso geral</span><span class="font-bold text-navy-900">${all.pct}%</span></div>
+        ${progressBar(all.pct, 'linear-gradient(90deg,#071d41,#c59b27)', '!h-3')}
+      </div>
+    </div>
+
+    <!-- Abas de matérias -->
+    <div class="no-scrollbar -mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-1">
+      ${SUBJECT_KEYS.map(k => { const pp = editalProgress(k); const active = k === editalTab; return `
+        <button data-action="edital-tab" data-subject="${k}" class="btn shrink-0 ${active ? 'text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}" style="${active ? `background:${SUBJECTS[k].color}` : ''}">
+          <i class="fa-solid ${SUBJECTS[k].icon}"></i>${SUBJECTS[k].name}<span class="rounded-full px-1.5 text-[11px] ${active ? 'bg-white/20' : 'bg-white'}">${pp.pct}%</span>
+        </button>`; }).join('')}
+    </div>
+  </section>
+
+  <section class="card mt-5 overflow-hidden">
+    <div class="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+      <div class="flex items-center gap-3">
+        <div class="grid h-11 w-11 place-items-center rounded-xl text-lg" style="background:${subj.color}14;color:${subj.color}"><i class="fa-solid ${subj.icon}"></i></div>
+        <div>
+          <div class="font-display text-xl font-semibold text-navy-900">${subj.name}</div>
+          <div class="text-xs text-slate-500">${p.topicsDone} de ${p.topics} tópicos completos · ${p.done}/${p.total} etapas</div>
+        </div>
+      </div>
+      <div class="sm:w-56">
+        <div class="mb-1 text-right text-sm font-bold" style="color:${subj.color}">${p.pct}%</div>
+        ${progressBar(p.pct, subj.color)}
+      </div>
+    </div>
+    <ul class="divide-y divide-slate-100">
+      ${EDITAL[editalTab].map(([slug, title], i) => {
+        const id = `${editalTab}.${slug}`;
+        const e = S.edital[id] || {};
+        const c = STATUS_FIELDS.filter(f => e[f.key]).length;
+        const complete = c === STATUS_FIELDS.length;
+        return `
+        <li class="flex flex-col gap-3 px-5 py-4 sm:px-6 lg:flex-row lg:items-center ${complete ? 'bg-emerald-50/40' : ''}">
+          <div class="flex min-w-0 flex-1 items-start gap-3">
+            <button data-action="edital-all" data-id="${id}" title="${complete ? 'Desmarcar tudo' : 'Marcar tudo'}"
+              class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border-2 text-[11px] ${complete ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 text-transparent hover:border-emerald-400'}">
+              <i class="fa-solid fa-check"></i>
+            </button>
+            <div class="min-w-0">
+              <div class="text-sm font-medium ${complete ? 'text-emerald-800' : 'text-slate-800'}"><span class="mr-1 text-slate-400">${pad(i + 1)}.</span>${esc(title)}</div>
+              <div class="mt-1.5 w-28">${progressBar(c * 25, complete ? '#059669' : subj.color, '!h-1')}</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:w-[560px] lg:shrink-0">
+            ${STATUS_FIELDS.map(f => { const on = !!e[f.key]; return `
+              <button data-action="edital-toggle" data-id="${id}" data-field="${f.key}" aria-pressed="${on}"
+                class="flex items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-xs font-semibold transition ${on ? 'border-navy-900 bg-navy-900 text-white' : 'border-slate-200 bg-white text-slate-600 hover:border-navy-200 hover:bg-navy-50'}">
+                <span class="grid h-4 w-4 shrink-0 place-items-center rounded border ${on ? 'border-gold-400 bg-gold-500 text-navy-950' : 'border-slate-300'}">${on ? '<i class="fa-solid fa-check text-[9px]"></i>' : ''}</span>
+                ${f.label}
+              </button>`; }).join('')}
+          </div>
+        </li>`; }).join('')}
+    </ul>
+  </section>`;
+}
+
+/* ---------------------- 6.4 QUESTÕES ---------------------- */
+function buildQuestionList() {
+  const { subject, diff, status } = QV.filters;
+  QV.list = QUESTIONS.filter(q => {
+    if (subject !== 'all' && q.s !== subject) return false;
+    if (diff !== 'all' && String(q.d) !== diff) return false;
+    const st = S.questionStats[q.id];
+    if (status === 'new' && st && st.attempts > 0) return false;
+    if (status === 'wrong' && !(st && st.lastCorrect === false)) return false;
+    if (status === 'right' && !(st && st.lastCorrect === true)) return false;
+    return true;
+  }).map(q => q.id);
+  QV.idx = 0; QV.selected = null; QV.revealed = false;
+}
+
+function filterBar(includeStatus = true) {
+  const f = QV.filters;
+  return `
+  <div class="grid gap-3 ${includeStatus ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}">
+    <div><label class="label">Matéria</label>
+      <select data-change="q-filter" data-key="subject" class="input">
+        <option value="all">Todas as matérias</option>
+        ${SUBJECT_KEYS.map(k => `<option value="${k}" ${f.subject === k ? 'selected' : ''}>${SUBJECTS[k].name} (${QUESTIONS.filter(q => q.s === k).length})</option>`).join('')}
+      </select></div>
+    <div><label class="label">Dificuldade</label>
+      <select data-change="q-filter" data-key="diff" class="input">
+        <option value="all">Todas</option>
+        ${[1, 2, 3].map(d => `<option value="${d}" ${f.diff === String(d) ? 'selected' : ''}>${DIFFICULTY[d].label}</option>`).join('')}
+      </select></div>
+    ${includeStatus ? `<div><label class="label">Situação</label>
+      <select data-change="q-filter" data-key="status" class="input">
+        ${[['all', 'Todas'], ['new', 'Não respondidas'], ['wrong', 'Errei na última'], ['right', 'Acertei na última']].map(([v, l]) => `<option value="${v}" ${f.status === v ? 'selected' : ''}>${l}</option>`).join('')}
+      </select></div>` : ''}
+  </div>`;
+}
+
+function viewQuestoes() {
+  const tabs = `
+  <div class="mb-5 inline-flex rounded-xl bg-white p-1 shadow-soft border border-slate-200/70">
+    <button data-action="q-mode" data-mode="treino" class="btn !py-2 ${QV.mode === 'treino' ? 'bg-navy-900 text-white' : 'text-slate-600'}"><i class="fa-solid fa-dumbbell"></i>Treino</button>
+    <button data-action="q-mode" data-mode="simulado" class="btn !py-2 ${QV.mode === 'simulado' ? 'bg-navy-900 text-white' : 'text-slate-600'}"><i class="fa-solid fa-file-circle-check"></i>Simulado</button>
+  </div>`;
+  return tabs + (QV.mode === 'treino' ? viewTreino() : viewSimulado());
+}
+
+function alternativesHTML(q, selected, revealed, action) {
+  return q.opts.map((opt, i) => {
+    const letter = 'ABCDE'[i];
+    let cls = 'border-slate-200 bg-white hover:border-navy-600 hover:bg-navy-50';
+    let badge = 'bg-slate-100 text-slate-600';
+    let icon = '';
+    if (revealed) {
+      if (i === q.a) { cls = 'border-emerald-500 bg-emerald-50'; badge = 'bg-emerald-500 text-white'; icon = '<i class="fa-solid fa-circle-check text-emerald-600"></i>'; }
+      else if (i === selected) { cls = 'border-rose-500 bg-rose-50'; badge = 'bg-rose-500 text-white'; icon = '<i class="fa-solid fa-circle-xmark text-rose-600"></i>'; }
+      else cls = 'border-slate-200 bg-white opacity-60';
+    } else if (i === selected) { cls = 'border-navy-900 bg-navy-50 ring-2 ring-navy-100'; badge = 'bg-navy-900 text-white'; }
+    return `
+      <button data-action="${action}" data-opt="${i}" ${revealed ? 'disabled' : ''} class="flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition ${cls} disabled:cursor-default">
+        <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sm font-bold ${badge}">${letter}</span>
+        <span class="flex-1 text-slate-800">${esc(opt)}</span>${icon}
+      </button>`;
+  }).join('');
+}
+
+function questionHeader(q, extra = '') {
+  return `
+  <div class="flex flex-wrap items-center gap-2">
+    ${subjectBadge(q.s)}
+    <span class="chip ${DIFFICULTY[q.d].cls}"><i class="fa-solid fa-signal"></i>${DIFFICULTY[q.d].label}</span>
+    <span class="chip bg-slate-100 text-slate-500">#${q.id.toUpperCase()}</span>
+    ${extra}
+  </div>`;
+}
+
+function viewTreino() {
+  const list = QV.list;
+  const q = QUESTION_MAP[list[QV.idx]];
+  const totals = questionTotals();
+
+  let body;
+  if (!q) {
+    body = `<div class="card card-pad text-center">
+      <i class="fa-solid fa-magnifying-glass text-3xl text-slate-300"></i>
+      <p class="mt-3 font-semibold text-navy-900">Nenhuma questão encontrada com esses filtros.</p>
+      <p class="text-sm text-slate-500">Altere a matéria, a dificuldade ou a situação.</p></div>`;
+  } else {
+    const st = S.questionStats[q.id];
+    const isCorrect = QV.revealed && QV.selected === q.a;
+    body = `
+    <section class="card card-pad">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        ${questionHeader(q)}
+        <span class="text-sm font-semibold text-slate-500">Questão ${QV.idx + 1} de ${list.length}</span>
+      </div>
+      <p class="q-text mt-5 text-base leading-relaxed text-slate-800 sm:text-[17px]">${esc(q.q)}</p>
+      <div class="mt-5 space-y-2.5">${alternativesHTML(q, QV.selected, QV.revealed, 'q-answer')}</div>
+
+      ${QV.revealed ? `
+      <div class="fade-in mt-5 rounded-xl border-l-4 p-4 ${isCorrect ? 'border-emerald-500 bg-emerald-50' : 'border-rose-500 bg-rose-50'}">
+        <div class="font-semibold ${isCorrect ? 'text-emerald-800' : 'text-rose-800'}">
+          <i class="fa-solid ${isCorrect ? 'fa-circle-check' : 'fa-circle-xmark'} mr-1"></i>
+          ${isCorrect ? 'Correto! Bravo Zulu.' : `Incorreto. A resposta certa é a letra ${'ABCDE'[q.a]}.`}
+        </div>
+      </div>
+      <div class="fade-in mt-3 rounded-xl bg-navy-50 p-4">
+        <div class="text-xs font-bold uppercase tracking-wide text-navy-700"><i class="fa-solid fa-route mr-1"></i>Resolução passo a passo</div>
+        <p class="q-text mt-2 text-sm leading-relaxed text-navy-900">${esc(q.exp)}</p>
+      </div>` : ''}
+
+      <div class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+        <div class="text-xs text-slate-500">
+          <i class="fa-solid fa-chart-simple mr-1"></i>
+          ${st && st.attempts ? `Seu histórico: ${st.attempts} tentativa${st.attempts > 1 ? 's' : ''} · ${st.correct} acerto${st.correct === 1 ? '' : 's'} · ${pct(st.correct, st.attempts)}%` : 'Primeira tentativa nesta questão'}
+        </div>
+        <div class="flex gap-2">
+          <button data-action="q-prev" class="btn-ghost" ${QV.idx === 0 ? 'disabled' : ''}><i class="fa-solid fa-arrow-left"></i></button>
+          <button data-action="q-random" class="btn-ghost" title="Aleatória"><i class="fa-solid fa-shuffle"></i></button>
+          ${QV.revealed ? '' : '<button data-action="q-skip" class="btn-ghost">Pular</button>'}
+          <button data-action="q-next" class="btn-primary" ${QV.idx >= list.length - 1 ? 'disabled' : ''}>Próxima<i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </section>`;
+  }
+
+  // Ranking das mais erradas
+  const hardest = Object.entries(S.questionStats)
+    .filter(([id, s]) => QUESTION_MAP[id] && s.attempts - s.correct > 0)
+    .sort((a, b) => (b[1].attempts - b[1].correct) - (a[1].attempts - a[1].correct) || pct(a[1].correct, a[1].attempts) - pct(b[1].correct, b[1].attempts))
+    .slice(0, 5);
+
+  return `
+  <div class="grid gap-5 lg:grid-cols-3">
+    <div class="space-y-5 lg:col-span-2">
+      <section class="card card-pad">${filterBar(true)}</section>
+      ${body}
+    </div>
+    <aside class="space-y-5">
+      <section class="card card-pad">
+        <h3 class="section-title">Seu desempenho</h3>
+        <div class="mt-4 grid grid-cols-3 gap-2 text-center">
+          <div class="rounded-xl bg-slate-50 p-3"><div class="text-xl font-bold text-navy-900">${totals.answered}</div><div class="text-[11px] text-slate-500">respostas</div></div>
+          <div class="rounded-xl bg-emerald-50 p-3"><div class="text-xl font-bold text-emerald-700">${totals.correct}</div><div class="text-[11px] text-slate-500">acertos</div></div>
+          <div class="rounded-xl bg-gold-50 p-3"><div class="text-xl font-bold text-gold-700">${totals.answered ? totals.acc + '%' : '—'}</div><div class="text-[11px] text-slate-500">taxa</div></div>
+        </div>
+        <div class="mt-3 text-xs text-slate-500">${totals.unique} de ${QUESTIONS.length} questões já resolvidas</div>
+        <div class="mt-5 space-y-3">
+          ${SUBJECT_KEYS.map(k => { const t = questionTotals(qq => qq.s === k); return `
+            <div>
+              <div class="flex justify-between text-sm"><span class="font-medium text-slate-700">${SUBJECTS[k].name}</span><span class="text-xs text-slate-500">${t.correct}/${t.answered} · ${t.answered ? t.acc + '%' : '—'}</span></div>
+              <div class="mt-1">${progressBar(t.acc, SUBJECTS[k].color, '!h-1.5')}</div>
+            </div>`; }).join('')}
+        </div>
+        <div class="mt-5 grid grid-cols-3 gap-2 text-center">
+          ${[1, 2, 3].map(d => { const t = questionTotals(qq => qq.d === d); return `<div class="rounded-lg border border-slate-100 p-2"><div class="text-[11px] font-semibold ${DIFFICULTY[d].cls} rounded px-1">${DIFFICULTY[d].label}</div><div class="mt-1 text-sm font-bold text-navy-900">${t.answered ? t.acc + '%' : '—'}</div></div>`; }).join('')}
+        </div>
+      </section>
+      <section class="card card-pad">
+        <h3 class="section-title">Para revisar</h3>
+        <p class="text-xs text-slate-500">Questões que você mais errou</p>
+        <ul class="mt-3 space-y-2">
+          ${hardest.length ? hardest.map(([id, s]) => { const qq = QUESTION_MAP[id]; return `
+            <li><button data-action="q-jump" data-id="${id}" class="flex w-full items-center gap-3 rounded-xl border border-slate-100 p-2.5 text-left hover:bg-slate-50">
+              <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-xs" style="background:${SUBJECTS[qq.s].color}14;color:${SUBJECTS[qq.s].color}"><i class="fa-solid ${SUBJECTS[qq.s].icon}"></i></span>
+              <span class="min-w-0 flex-1 truncate text-sm text-slate-700">${esc(qq.q.split('\n')[0])}</span>
+              <span class="text-xs font-semibold text-rose-600">${s.attempts - s.correct}✗</span>
+            </button></li>`; }).join('') : '<li class="text-sm text-slate-500">Nenhum erro registrado ainda. 👏</li>'}
+        </ul>
+        ${totals.answered ? '<button data-action="q-reset-stats" class="mt-4 text-xs font-semibold text-rose-600 hover:underline"><i class="fa-solid fa-trash-can mr-1"></i>Zerar estatísticas de questões</button>' : ''}
+      </section>
+    </aside>
+  </div>`;
+}
+
+function viewSimulado() {
+  const sim = QV.sim;
+
+  // ----- Tela inicial / configuração -----
+  if (!sim) {
+    const history = S.simulados.slice().reverse().slice(0, 10);
+    const available = QUESTIONS.filter(q => (QV.filters.subject === 'all' || q.s === QV.filters.subject) && (QV.filters.diff === 'all' || String(q.d) === QV.filters.diff)).length;
+    return `
+    <div class="grid gap-5 lg:grid-cols-3">
+      <section class="card card-pad lg:col-span-2">
+        <h3 class="section-title">Novo simulado</h3>
+        <p class="mt-1 text-sm text-slate-500">Questões sorteadas, sem gabarito durante a prova. A correção completa aparece ao final.</p>
+        <div class="mt-5">${filterBar(false)}</div>
+        <div class="mt-4">
+          <label class="label">Quantidade de questões</label>
+          <div class="flex flex-wrap gap-2">
+            ${[5, 10, 15, 20].map(n => `<button data-action="sim-start" data-n="${n}" class="btn-ghost" ${available === 0 ? 'disabled' : ''}>${Math.min(n, available)} questões</button>`).join('')}
+          </div>
+          <p class="mt-3 text-xs text-slate-500">${available} questões disponíveis com esses filtros.</p>
+        </div>
+      </section>
+      <section class="card card-pad">
+        <h3 class="section-title">Histórico</h3>
+        <ul class="mt-3 space-y-2">
+          ${history.length ? history.map(h => { const p = pct(h.correct, h.total); return `
+            <li class="flex items-center justify-between rounded-xl border border-slate-100 p-3">
+              <div>
+                <div class="text-sm font-semibold text-navy-900">${h.subject === 'all' ? 'Geral' : (SUBJECTS[h.subject] || {}).name || h.subject}${h.diff !== 'all' ? ` · ${(DIFFICULTY[h.diff] || {}).label || ''}` : ''}</div>
+                <div class="text-xs text-slate-500">${new Date(h.date).toLocaleDateString('pt-BR')} · ${fmtClock(h.durationSec)}</div>
+              </div>
+              <div class="text-right"><div class="text-lg font-bold ${p >= 70 ? 'text-emerald-600' : p >= 50 ? 'text-amber-600' : 'text-rose-600'}">${p}%</div><div class="text-xs text-slate-500">${h.correct}/${h.total}</div></div>
+            </li>`; }).join('') : '<li class="text-sm text-slate-500">Nenhum simulado realizado ainda.</li>'}
+        </ul>
+      </section>
+    </div>`;
+  }
+
+  // ----- Resultado -----
+  if (sim.finished) {
+    const r = sim.result;
+    const p = pct(r.correct, r.total);
+    return `
+    <section class="card overflow-hidden">
+      <div class="bg-navy-900 p-6 text-white wave-bg">
+        <div class="text-[11px] font-semibold uppercase tracking-[.2em] text-gold-300">Resultado do simulado</div>
+        <div class="mt-2 flex flex-wrap items-end gap-4">
+          <div class="font-display text-6xl font-bold text-gold-400">${p}%</div>
+          <div class="pb-2 text-navy-100">${r.correct} acertos de ${r.total} · tempo ${fmtClock(r.durationSec)}</div>
+        </div>
+        <p class="mt-2 text-sm text-navy-100/80">${p >= 80 ? 'Excelente! Desempenho de aprovação.' : p >= 60 ? 'Bom resultado. Revise os erros e mantenha o ritmo.' : 'Foque na revisão das resoluções abaixo. Constância vence.'}</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button data-action="sim-new" class="btn-gold"><i class="fa-solid fa-rotate"></i>Novo simulado</button>
+        </div>
+      </div>
+      <div class="divide-y divide-slate-100">
+        ${sim.ids.map((id, i) => { const q = QUESTION_MAP[id]; const ans = sim.answers[id]; const ok = ans === q.a; return `
+          <details class="group p-5 sm:p-6">
+            <summary class="flex items-start gap-3">
+              <span class="grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold text-white ${ans === undefined ? 'bg-slate-400' : ok ? 'bg-emerald-500' : 'bg-rose-500'}">${i + 1}</span>
+              <span class="flex-1 text-sm text-slate-700">${esc(q.q.split('\n')[0])}</span>
+              <span class="text-xs font-semibold ${ans === undefined ? 'text-slate-500' : ok ? 'text-emerald-600' : 'text-rose-600'}">${ans === undefined ? 'Em branco' : ok ? 'Acertou' : `Marcou ${'ABCDE'[ans]}`}</span>
+              <i class="fa-solid fa-chevron-down mt-0.5 text-xs text-slate-400 transition group-open:rotate-180"></i>
+            </summary>
+            <div class="mt-4 space-y-4 pl-0 sm:pl-10">
+              ${questionHeader(q)}
+              <p class="q-text text-sm text-slate-800">${esc(q.q)}</p>
+              <div class="space-y-2">${alternativesHTML(q, ans, true, 'noop')}</div>
+              <div class="rounded-xl bg-navy-50 p-4"><div class="text-xs font-bold uppercase tracking-wide text-navy-700">Resolução</div><p class="q-text mt-2 text-sm text-navy-900">${esc(q.exp)}</p></div>
+            </div>
+          </details>`; }).join('')}
+      </div>
+    </section>`;
+  }
+
+  // ----- Em andamento -----
+  const q = QUESTION_MAP[sim.ids[sim.idx]];
+  const answeredCount = Object.keys(sim.answers).length;
+  return `
+  <div class="grid gap-5 lg:grid-cols-3">
+    <section class="card card-pad lg:col-span-2">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        ${questionHeader(q)}
+        <span class="text-sm font-semibold text-slate-500">${sim.idx + 1} / ${sim.ids.length}</span>
+      </div>
+      <p class="q-text mt-5 text-base leading-relaxed text-slate-800 sm:text-[17px]">${esc(q.q)}</p>
+      <div class="mt-5 space-y-2.5">${alternativesHTML(q, sim.answers[q.id], false, 'sim-answer')}</div>
+      <div class="mt-5 flex justify-between gap-2 border-t border-slate-100 pt-4">
+        <button data-action="sim-prev" class="btn-ghost" ${sim.idx === 0 ? 'disabled' : ''}><i class="fa-solid fa-arrow-left"></i>Anterior</button>
+        ${sim.idx < sim.ids.length - 1
+          ? '<button data-action="sim-next" class="btn-primary">Próxima<i class="fa-solid fa-arrow-right"></i></button>'
+          : '<button data-action="sim-finish" class="btn-gold"><i class="fa-solid fa-flag-checkered"></i>Finalizar</button>'}
+      </div>
+    </section>
+    <aside class="card card-pad h-fit">
+      <h3 class="section-title">Cartão-resposta</h3>
+      <p class="text-xs text-slate-500">${answeredCount} de ${sim.ids.length} respondidas</p>
+      <div class="mt-4 grid grid-cols-5 gap-2">
+        ${sim.ids.map((id, i) => `<button data-action="sim-goto" data-i="${i}" class="h-10 rounded-lg text-sm font-semibold ${i === sim.idx ? 'ring-2 ring-gold-500' : ''} ${sim.answers[id] !== undefined ? 'bg-navy-900 text-white' : 'bg-slate-100 text-slate-600'}">${i + 1}${sim.answers[id] !== undefined ? `<span class="text-[10px] text-gold-300">${'ABCDE'[sim.answers[id]]}</span>` : ''}</button>`).join('')}
+      </div>
+      <button data-action="sim-finish" class="btn-gold mt-5 w-full"><i class="fa-solid fa-flag-checkered"></i>Finalizar simulado</button>
+      <button data-action="sim-cancel" class="btn-ghost mt-2 w-full">Cancelar</button>
+    </aside>
+  </div>`;
+}
+
+function recordAnswer(qid, chosen) {
+  const q = QUESTION_MAP[qid];
+  const st = S.questionStats[qid] || (S.questionStats[qid] = { attempts: 0, correct: 0, last: null, lastCorrect: null, ts: 0 });
+  const ok = chosen === q.a;
+  st.attempts++; if (ok) st.correct++;
+  st.last = chosen; st.lastCorrect = ok; st.ts = Date.now();
+  return ok;
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+/* ---------------------- 6.5 PLANO SEMANAL ---------------------- */
+function planItemHTML(day, it, compact = false) {
+  const s = SUBJECTS[it.subject];
+  return `
+  <li class="group flex items-start gap-2.5 rounded-xl border ${it.done ? 'border-emerald-200 bg-emerald-50/60' : 'border-slate-200 bg-white'} p-2.5">
+    <button data-action="plan-toggle" data-day="${day}" data-id="${it.id}" aria-label="Concluir"
+      class="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border-2 text-[10px] ${it.done ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300 text-transparent hover:border-emerald-400'}">
+      <i class="fa-solid fa-check"></i>
+    </button>
+    <div class="min-w-0 flex-1">
+      <div class="flex items-center gap-1.5 text-xs font-semibold" style="color:${s.color}"><i class="fa-solid ${s.icon}"></i>${s.name}<span class="font-medium text-slate-400">· ${it.minutes} min</span></div>
+      ${it.goal ? `<div class="mt-0.5 break-words text-sm ${it.done ? 'text-slate-400 line-through' : 'text-slate-700'}">${esc(it.goal)}</div>` : ''}
+    </div>
+    ${compact ? '' : `<button data-action="plan-del" data-day="${day}" data-id="${it.id}" class="text-slate-300 hover:text-rose-500 sm:opacity-0 sm:group-hover:opacity-100" aria-label="Remover"><i class="fa-solid fa-xmark"></i></button>`}
+  </li>`;
+}
+
+function viewPlano() {
+  const today = todayDayKey();
+  let weekMin = 0, doneMin = 0;
+  const minBySubj = {}; SUBJECT_KEYS.forEach(k => minBySubj[k] = 0);
+  DAYS.forEach(({ k }) => S.plan[k].forEach(it => { weekMin += it.minutes; if (it.done) doneMin += it.minutes; minBySubj[it.subject] += it.minutes; }));
+
+  return `
+  <section class="card card-pad">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <h3 class="section-title">Plano de Estudos Semanal</h3>
+        <p class="text-sm text-slate-500">Distribua as matérias e metas de cada dia. Marque o que foi cumprido.</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button data-action="plan-template" class="btn-ghost"><i class="fa-solid fa-wand-magic-sparkles"></i>Modelo sugerido</button>
+        <button data-action="plan-new-week" class="btn-ghost"><i class="fa-solid fa-rotate"></i>Nova semana</button>
+      </div>
+    </div>
+    <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="rounded-xl bg-navy-50 p-4"><div class="text-xs font-semibold uppercase text-navy-700">Carga planejada</div><div class="mt-1 text-2xl font-bold text-navy-900">${fmtDuration(weekMin * 60)}</div></div>
+      <div class="rounded-xl bg-emerald-50 p-4"><div class="text-xs font-semibold uppercase text-emerald-700">Cumprido</div><div class="mt-1 text-2xl font-bold text-emerald-800">${pct(doneMin, weekMin)}%</div></div>
+      <div class="rounded-xl border border-slate-100 p-4 sm:col-span-2">
+        <div class="text-xs font-semibold uppercase text-slate-500">Distribuição por matéria</div>
+        <div class="mt-2 flex h-3 overflow-hidden rounded-full bg-slate-100">
+          ${weekMin ? SUBJECT_KEYS.map(k => minBySubj[k] ? `<span title="${SUBJECTS[k].name}: ${fmtDuration(minBySubj[k] * 60)}" style="width:${(minBySubj[k] / weekMin) * 100}%;background:${SUBJECTS[k].color}"></span>` : '').join('') : ''}
+        </div>
+        <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-500">
+          ${SUBJECT_KEYS.map(k => `<span><i class="fa-solid fa-circle text-[7px] mr-1" style="color:${SUBJECTS[k].color}"></i>${SUBJECTS[k].short} ${fmtDuration(minBySubj[k] * 60)}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+    ${DAYS.map(({ k, n }) => {
+      const items = S.plan[k];
+      const total = items.reduce((a, i) => a + i.minutes, 0);
+      const done = items.filter(i => i.done).length;
+      const isToday = k === today;
+      return `
+      <section class="card flex flex-col ${isToday ? 'ring-2 ring-gold-500' : ''}">
+        <div class="flex items-center justify-between rounded-t-2xl px-4 py-3 ${isToday ? 'bg-navy-900 text-white' : 'border-b border-slate-100'}">
+          <div>
+            <div class="font-display text-base font-semibold uppercase tracking-wide">${n}${isToday ? ' <span class="ml-1 rounded bg-gold-500 px-1.5 py-0.5 font-sans text-[10px] font-bold text-navy-950">HOJE</span>' : ''}</div>
+            <div class="text-xs ${isToday ? 'text-navy-100/80' : 'text-slate-500'}">${fmtDuration(total * 60)} · ${done}/${items.length} metas</div>
+          </div>
+          ${items.length ? `<div class="text-sm font-bold ${isToday ? 'text-gold-300' : 'text-slate-500'}">${pct(done, items.length)}%</div>` : ''}
+        </div>
+        <ul class="flex-1 space-y-2 p-3">
+          ${items.length ? items.map(it => planItemHTML(k, it)).join('') : '<li class="py-3 text-center text-xs text-slate-400">Dia livre / descanso</li>'}
+        </ul>
+        <form data-submit="plan-add" data-day="${k}" class="space-y-2 border-t border-slate-100 p-3">
+          <div class="flex gap-2">
+            <select name="subject" class="input !py-2 flex-1" aria-label="Matéria">
+              ${SUBJECT_KEYS.map(s => `<option value="${s}">${SUBJECTS[s].name}</option>`).join('')}
+            </select>
+            <input name="minutes" type="number" min="5" max="720" step="5" value="60" class="input !py-2 w-20" aria-label="Minutos" />
+          </div>
+          <div class="flex gap-2">
+            <input name="goal" type="text" maxlength="140" placeholder="Meta (ex.: 20 questões de derivadas)" class="input !py-2 flex-1" />
+            <button type="submit" class="btn-primary !px-3 !py-2" aria-label="Adicionar"><i class="fa-solid fa-plus"></i></button>
+          </div>
+        </form>
+      </section>`; }).join('')}
+  </div>`;
+}
+
+const PLAN_TEMPLATE = {
+  seg: [['mat', 'Teoria: funções e logaritmos + 15 questões', 120], ['ing', 'Reading: 2 textos + vocabulário', 60]],
+  ter: [['fis', 'Cinemática e lançamentos + 15 questões', 120], ['por', 'Sintaxe do período simples', 60]],
+  qua: [['mat', 'Trigonometria + lista de exercícios', 120], ['red', 'Leitura de repertório + esboço', 60]],
+  qui: [['fis', 'Dinâmica: leis de Newton + 20 questões', 120], ['ing', 'Verb tenses e conditionals', 60]],
+  sex: [['mat', 'Cálculo: limites e derivadas', 120], ['por', 'Concordância, regência e crase', 60]],
+  sab: [['red', 'Redação completa cronometrada', 90], ['mat', 'Simulado misto + correção', 120], ['fis', 'Revisão da semana', 60]],
+  dom: [['por', 'Revisão leve: interpretação de texto', 45]]
+};
+
+/* =====================================================================
+   7. MODAIS, TOASTS E EVENTOS
+   ===================================================================== */
+
+function toast(html, type = 'info', ms = 3200) {
+  const root = document.getElementById('toast-root');
+  if (!root) return;
+  const styles = {
+    info: 'bg-navy-900 text-white', success: 'bg-emerald-600 text-white',
+    error: 'bg-rose-600 text-white', gold: 'bg-gold-500 text-navy-950'
+  };
+  const el = document.createElement('div');
+  el.className = `toast-in pointer-events-auto max-w-md rounded-xl px-4 py-3 text-sm font-medium shadow-lg ${styles[type] || styles.info}`;
+  el.innerHTML = html;
+  root.appendChild(el);
+  setTimeout(() => { el.style.transition = 'opacity .3s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, ms);
+}
+
+function openModal(title, bodyHTML, { icon = 'fa-anchor', wide = false } = {}) {
+  const root = document.getElementById('modal-root');
+  root.innerHTML = `
+  <div class="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-4" data-action="modal-backdrop">
+    <div class="fade-in max-h-[92vh] w-full ${wide ? 'sm:max-w-2xl' : 'sm:max-w-md'} overflow-y-auto rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl" role="dialog" aria-modal="true">
+      <div class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-5 py-4">
+        <h3 class="font-display text-lg font-semibold uppercase tracking-wide text-navy-900"><i class="fa-solid ${icon} mr-2 text-gold-500"></i>${title}</h3>
+        <button data-action="modal-close" class="grid h-9 w-9 place-items-center rounded-lg text-slate-400 hover:bg-slate-100" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-5">${bodyHTML}</div>
+    </div>
+  </div>`;
+  const first = root.querySelector('input, select');
+  if (first) setTimeout(() => first.focus(), 50);
+}
+function closeModal() { document.getElementById('modal-root').innerHTML = ''; }
+
+function openExamDateModal() {
+  openModal('Data da prova', `
+    <form data-submit="exam-date" class="space-y-4">
+      <div><label class="label" for="exam-date-input">Data do concurso (CPAEN)</label>
+        <input id="exam-date-input" name="date" type="date" required value="${S.examDate}" class="input" /></div>
+      <p class="text-xs text-slate-500">Consulte o edital oficial no site da Marinha do Brasil para a data correta.</p>
+      <div class="flex justify-end gap-2"><button type="button" data-action="modal-close" class="btn-ghost">Cancelar</button><button type="submit" class="btn-primary">Salvar</button></div>
+    </form>`, { icon: 'fa-calendar-days' });
+}
+
+function openRanksModal() {
+  const r = getRank(computeXP());
+  openModal('Carreira naval', `
+    <div class="rounded-xl bg-navy-50 p-4 text-sm text-navy-900">
+      <div class="font-semibold">Como ganhar XP</div>
+      <ul class="mt-2 grid grid-cols-1 gap-1 text-navy-800/90 sm:grid-cols-2">
+        <li><i class="fa-solid fa-clock w-4 text-gold-600"></i> ${XP_RULES.perStudyHour} XP por hora estudada</li>
+        <li><i class="fa-solid fa-pen w-4 text-gold-600"></i> ${XP_RULES.perAnswer} XP por questão respondida</li>
+        <li><i class="fa-solid fa-check w-4 text-gold-600"></i> +${XP_RULES.perCorrect} XP por acerto</li>
+        <li><i class="fa-solid fa-list-check w-4 text-gold-600"></i> ${XP_RULES.perEditalCheck} XP por etapa do edital</li>
+        <li><i class="fa-solid fa-file-circle-check w-4 text-gold-600"></i> ${XP_RULES.perSimulado} XP por simulado</li>
+      </ul>
+    </div>
+    <ol class="mt-4 space-y-1.5">
+      ${RANKS.map((rk, i) => { const reached = i <= r.idx; const current = i === r.idx; return `
+        <li class="flex items-center gap-3 rounded-xl px-3 py-2 ${current ? 'bg-navy-900 text-white' : reached ? 'bg-gold-50' : ''}">
+          <span class="grid h-8 w-8 place-items-center rounded-lg ${current ? 'bg-gold-500 text-navy-950' : reached ? 'bg-gold-100 text-gold-700' : 'bg-slate-100 text-slate-400'}"><i class="fa-solid ${rk.icon} text-sm"></i></span>
+          <span class="flex-1 text-sm font-semibold ${!reached ? 'text-slate-400' : ''}">${rk.name}</span>
+          <span class="text-xs ${current ? 'text-gold-300' : 'text-slate-400'}">${rk.xp} XP</span>
+          ${reached && !current ? '<i class="fa-solid fa-check text-xs text-gold-600"></i>' : ''}
+        </li>`; }).join('')}
+    </ol>`, { icon: 'fa-medal', wide: true });
+}
+
+function openSettingsModal() {
+  const st = S.settings;
+  openModal('Configurações', `
+    <form data-submit="settings" class="space-y-5">
+      <div class="grid grid-cols-2 gap-3">
+        <div class="col-span-2"><label class="label">Data da prova</label><input name="examDate" type="date" value="${S.examDate}" class="input" required /></div>
+        <div class="col-span-2"><label class="label">Meta diária (horas)</label><input name="goal" type="number" min="0.25" max="16" step="0.25" value="${st.dailyGoalMin / 60}" class="input" /></div>
+        <div><label class="label">Foco (min)</label><input name="focus" type="number" min="1" max="180" value="${st.durations.focus}" class="input" /></div>
+        <div><label class="label">Pausa curta</label><input name="short" type="number" min="1" max="60" value="${st.durations.short}" class="input" /></div>
+        <div><label class="label">Pausa longa</label><input name="long" type="number" min="1" max="90" value="${st.durations.long}" class="input" /></div>
+      </div>
+      <label class="flex items-center gap-3 text-sm"><input name="sound" type="checkbox" ${st.sound ? 'checked' : ''} class="h-4 w-4 accent-navy-900" /> Sons de alerta ao fim dos ciclos</label>
+      <label class="flex items-center gap-3 text-sm"><input name="autoStart" type="checkbox" ${st.autoStart ? 'checked' : ''} class="h-4 w-4 accent-navy-900" /> Iniciar o próximo ciclo automaticamente</label>
+      <button type="submit" class="btn-primary w-full">Salvar configurações</button>
+    </form>
+    <div class="mt-6 border-t border-slate-100 pt-5">
+      <div class="label">Backup dos dados</div>
+      <div class="grid grid-cols-2 gap-2">
+        <button data-action="export" class="btn-ghost"><i class="fa-solid fa-download"></i>Exportar</button>
+        <label class="btn-ghost cursor-pointer"><i class="fa-solid fa-upload"></i>Importar<input id="import-file" type="file" accept="application/json,.json" class="hidden" data-change="import" /></label>
+      </div>
+      <p class="mt-2 text-xs text-slate-500">${Store.available ? 'Os dados ficam salvos neste navegador (localStorage), com cópia de segurança automática.' : 'localStorage indisponível — exporte o backup para não perder dados.'}</p>
+      <button data-action="reset-all" class="btn-danger mt-4 w-full"><i class="fa-solid fa-trash-can"></i>Apagar todos os dados</button>
+    </div>`, { icon: 'fa-gear' });
+}
+
+function openManualModal() {
+  openModal('Lançar tempo', `
+    <form data-submit="manual-time" class="space-y-4">
+      <div><label class="label">Matéria</label><select name="subject" class="input">${SUBJECT_KEYS.map(k => `<option value="${k}" ${S.timer.subject === k ? 'selected' : ''}>${SUBJECTS[k].name}</option>`).join('')}</select></div>
+      <div><label class="label">Minutos estudados (hoje)</label><input name="minutes" type="number" min="1" max="720" value="30" required class="input" /></div>
+      <div class="flex justify-end gap-2"><button type="button" data-action="modal-close" class="btn-ghost">Cancelar</button><button type="submit" class="btn-primary">Lançar</button></div>
+    </form>`, { icon: 'fa-clock' });
+}
+
+function exportData() {
+  try {
+    saveNow();
+    const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `logic-academy-backup-${dateKey()}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    toast('Backup exportado.', 'success');
+  } catch (e) { console.error(e); toast('Falha ao exportar backup.', 'error'); }
+}
+
+function importData(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if (!isObj(parsed) || !('studyLog' in parsed || 'edital' in parsed || 'plan' in parsed)) throw new Error('Arquivo não reconhecido');
+      if (!confirm('Importar este backup vai substituir os dados atuais. Continuar?')) return;
+      S = sanitizeState(parsed);
+      S.timer.running = false;
+      pendingStudyMs = 0;
+      saveNow(); closeModal(); lastRankIdx = getRank(computeXP()).idx; buildQuestionList(); render();
+      toast('Backup importado com sucesso.', 'success');
+    } catch (e) { console.error(e); toast('Arquivo de backup inválido.', 'error'); }
+  };
+  reader.onerror = () => toast('Não foi possível ler o arquivo.', 'error');
+  reader.readAsText(file);
+}
+
+/* ---------- Ações (delegação de eventos via data-action) ---------- */
+const ACTIONS = {
+  go: el => { currentView = el.dataset.view; window.scrollTo({ top: 0 }); render(); },
+  'go-edital': el => { editalTab = el.dataset.subject; currentView = 'edital'; window.scrollTo({ top: 0 }); render(); },
+  'open-settings': openSettingsModal,
+  'open-ranks': openRanksModal,
+  'edit-exam-date': openExamDateModal,
+  'modal-close': closeModal,
+  'modal-backdrop': (el, e) => { if (e.target === el) closeModal(); },
+  noop: () => {},
+
+  // Cronômetro
+  'timer-toggle': () => (S.timer.running ? timerPause() : timerStart()),
+  'timer-reset': timerReset,
+  'timer-skip': timerSkip,
+  'timer-mode': el => setTimerMode(el.dataset.mode),
+  'toggle-sound': () => { S.settings.sound = !S.settings.sound; saveSoon(); if (S.settings.sound) Sound.play('click'); render(); },
+  'test-sound': () => Sound.play('focusEnd', true),
+  'add-manual': openManualModal,
+
+  // Edital
+  'edital-tab': el => { editalTab = el.dataset.subject; render(); },
+  'edital-toggle': el => {
+    const { id, field } = el.dataset;
+    const e = S.edital[id] || (S.edital[id] = {});
+    e[field] = !e[field];
+    saveSoon(); checkPromotion(); render();
+  },
+  'edital-all': el => {
+    const id = el.dataset.id;
+    const e = S.edital[id] || (S.edital[id] = {});
+    const all = STATUS_FIELDS.every(f => e[f.key]);
+    STATUS_FIELDS.forEach(f => { e[f.key] = !all; });
+    saveSoon(); checkPromotion(); render();
+  },
+
+  // Questões — treino
+  'q-mode': el => { QV.mode = el.dataset.mode; render(); },
+  'q-answer': el => {
+    if (QV.revealed) return;
+    const qid = QV.list[QV.idx];
+    QV.selected = Number(el.dataset.opt); QV.revealed = true;
+    const ok = recordAnswer(qid, QV.selected);
+    Sound.play('click');
+    saveSoon(); checkPromotion(); render();
+    if (!ok) navigator.vibrate?.(80);
+  },
+  'q-next': () => { if (QV.idx < QV.list.length - 1) { QV.idx++; QV.selected = null; QV.revealed = false; render(); } },
+  'q-skip': () => ACTIONS['q-next'](),
+  'q-prev': () => { if (QV.idx > 0) { QV.idx--; QV.selected = null; QV.revealed = false; render(); } },
+  'q-random': () => {
+    if (QV.list.length < 2) return;
+    let n; do { n = Math.floor(Math.random() * QV.list.length); } while (n === QV.idx);
+    QV.idx = n; QV.selected = null; QV.revealed = false; render();
+  },
+  'q-jump': el => {
+    QV.filters = { subject: 'all', diff: 'all', status: 'all' };
+    buildQuestionList();
+    QV.idx = Math.max(0, QV.list.indexOf(el.dataset.id));
+    render(); window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+  'q-reset-stats': () => {
+    if (!confirm('Zerar todas as estatísticas de questões? (simulados e horas são mantidos)')) return;
+    S.questionStats = {}; saveNow(); lastRankIdx = getRank(computeXP()).idx; buildQuestionList(); render();
+  },
+
+  // Questões — simulado
+  'sim-start': el => {
+    const n = Number(el.dataset.n);
+    const pool = QUESTIONS.filter(q => (QV.filters.subject === 'all' || q.s === QV.filters.subject) && (QV.filters.diff === 'all' || String(q.d) === QV.filters.diff));
+    if (!pool.length) return;
+    QV.sim = { ids: shuffle(pool).slice(0, n).map(q => q.id), answers: {}, idx: 0, startedAt: Date.now(), finished: false, subject: QV.filters.subject, diff: QV.filters.diff };
+    render();
+  },
+  'sim-answer': el => { const sim = QV.sim; sim.answers[sim.ids[sim.idx]] = Number(el.dataset.opt); render(); },
+  'sim-next': () => { QV.sim.idx = Math.min(QV.sim.ids.length - 1, QV.sim.idx + 1); render(); },
+  'sim-prev': () => { QV.sim.idx = Math.max(0, QV.sim.idx - 1); render(); },
+  'sim-goto': el => { QV.sim.idx = Number(el.dataset.i); render(); },
+  'sim-cancel': () => { if (confirm('Cancelar o simulado? As respostas serão descartadas.')) { QV.sim = null; render(); } },
+  'sim-new': () => { QV.sim = null; render(); },
+  'sim-finish': () => {
+    const sim = QV.sim;
+    const blank = sim.ids.length - Object.keys(sim.answers).length;
+    if (blank > 0 && !confirm(`Há ${blank} questão(ões) em branco. Finalizar mesmo assim?`)) return;
+    let correct = 0;
+    sim.ids.forEach(id => { if (sim.answers[id] !== undefined && recordAnswer(id, sim.answers[id])) correct++; });
+    const durationSec = Math.round((Date.now() - sim.startedAt) / 1000);
+    sim.result = { total: sim.ids.length, correct, durationSec };
+    sim.finished = true;
+    S.simulados.push({ date: Date.now(), total: sim.ids.length, correct, subject: sim.subject, diff: sim.diff, durationSec });
+    if (S.simulados.length > 200) S.simulados = S.simulados.slice(-200);
+    saveNow(); Sound.play('breakEnd'); checkPromotion(); render(); window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+
+  // Plano
+  'plan-toggle': el => {
+    const it = (S.plan[el.dataset.day] || []).find(i => i.id === el.dataset.id);
+    if (it) { it.done = !it.done; saveSoon(); render(); }
+  },
+  'plan-del': el => {
+    S.plan[el.dataset.day] = S.plan[el.dataset.day].filter(i => i.id !== el.dataset.id);
+    saveSoon(); render();
+  },
+  'plan-new-week': () => {
+    if (!confirm('Desmarcar todas as metas concluídas para começar uma nova semana?')) return;
+    DAYS.forEach(({ k }) => S.plan[k].forEach(i => { i.done = false; }));
+    saveNow(); render(); toast('Nova semana iniciada. Rumo à aprovação!', 'success');
+  },
+  'plan-template': () => {
+    const hasItems = DAYS.some(({ k }) => S.plan[k].length);
+    if (hasItems && !confirm('Substituir o plano atual pelo modelo sugerido?')) return;
+    DAYS.forEach(({ k }) => { S.plan[k] = (PLAN_TEMPLATE[k] || []).map(([subject, goal, minutes]) => ({ id: uid(), subject, goal, minutes, done: false })); });
+    saveNow(); render(); toast('Modelo de plano aplicado. Ajuste à sua rotina!', 'success');
+  },
+
+  // Configurações
+  export: exportData,
+  'reset-all': () => {
+    if (!confirm('Apagar TODOS os dados (horas, edital, questões, plano)? Esta ação não pode ser desfeita.')) return;
+    if (!confirm('Tem certeza? Recomenda-se exportar um backup antes.')) return;
+    Store.clear(); S = createDefaultState(); pendingStudyMs = 0; lastRankIdx = 0; saveNow();
+    QV.sim = null; buildQuestionList(); closeModal(); render(); toast('Dados apagados.', 'info');
+  }
+};
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-action]');
+  if (!el || el.disabled) return;
+  const fn = ACTIONS[el.dataset.action];
+  if (!fn) return;
+  try { fn(el, e); } catch (err) { console.error('[action]', el.dataset.action, err); toast('Ocorreu um erro. Seus dados estão preservados.', 'error'); }
+});
+
+document.addEventListener('change', e => {
+  const el = e.target.closest('[data-change]');
+  if (!el) return;
+  try {
+    switch (el.dataset.change) {
+      case 'timer-subject': timerSetSubject(el.value); render(); break;
+      case 'q-filter':
+        QV.filters[el.dataset.key] = el.value;
+        if (QV.mode === 'treino') buildQuestionList();
+        render(); break;
+      case 'import': importData(el.files && el.files[0]); el.value = ''; break;
+    }
+  } catch (err) { console.error(err); toast('Ocorreu um erro.', 'error'); }
+});
+
+document.addEventListener('submit', e => {
+  const form = e.target.closest('[data-submit]');
+  if (!form) return;
+  e.preventDefault();
+  const fd = new FormData(form);
+  try {
+    switch (form.dataset.submit) {
+      case 'exam-date': {
+        const v = String(fd.get('date') || '');
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) { toast('Data inválida.', 'error'); return; }
+        S.examDate = v; saveNow(); closeModal(); render(); toast('Data da prova atualizada.', 'success');
+        break;
+      }
+      case 'settings': {
+        const v = String(fd.get('examDate') || '');
+        if (/^\d{4}-\d{2}-\d{2}$/.test(v)) S.examDate = v;
+        S.settings.dailyGoalMin = Math.round(num(parseFloat(fd.get('goal')), 4, 0.25, 16) * 60);
+        const oldDur = { ...S.settings.durations };
+        S.settings.durations.focus = Math.round(num(parseFloat(fd.get('focus')), 25, 1, 180));
+        S.settings.durations.short = Math.round(num(parseFloat(fd.get('short')), 5, 1, 60));
+        S.settings.durations.long = Math.round(num(parseFloat(fd.get('long')), 15, 1, 90));
+        S.settings.sound = fd.get('sound') === 'on';
+        S.settings.autoStart = fd.get('autoStart') === 'on';
+        // Se o ciclo atual está parado, aplica a nova duração
+        const m = S.timer.mode;
+        if (m !== 'free' && !S.timer.running && oldDur[m] !== S.settings.durations[m]) S.timer.remaining = modeDuration(m);
+        saveNow(); closeModal(); render(); toast('Configurações salvas.', 'success');
+        break;
+      }
+      case 'manual-time': {
+        const subj = SUBJECTS[fd.get('subject')] ? fd.get('subject') : 'mat';
+        const mins = Math.round(num(parseFloat(fd.get('minutes')), 0, 1, 720));
+        if (!mins) return;
+        addStudy(mins * 60, subj); saveNow(); closeModal(); checkPromotion(); render();
+        toast(`${mins} min de ${SUBJECTS[subj].name} lançados.`, 'success');
+        break;
+      }
+      case 'plan-add': {
+        const day = form.dataset.day;
+        const subject = SUBJECTS[fd.get('subject')] ? fd.get('subject') : 'mat';
+        const minutes = Math.round(num(parseFloat(fd.get('minutes')), 60, 5, 720));
+        const goal = String(fd.get('goal') || '').trim().slice(0, 140);
+        S.plan[day].push({ id: uid(), subject, goal, minutes, done: false });
+        saveSoon(); render();
+        break;
+      }
+    }
+  } catch (err) { console.error(err); toast('Não foi possível salvar.', 'error'); }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  // Atalho: espaço inicia/pausa o cronômetro na tela dele
+  if (e.code === 'Space' && currentView === 'timer' && !/INPUT|SELECT|TEXTAREA|BUTTON/.test(document.activeElement.tagName) && !document.getElementById('modal-root').innerHTML) {
+    e.preventDefault(); S.timer.running ? timerPause() : timerStart();
+  }
+});
+
+/* Garante a gravação ao sair/ocultar a aba */
+window.addEventListener('pagehide', () => { timerTick(); saveNow(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { timerTick(); saveNow(); } else { timerTick(); } });
+
+/* Sincroniza entre abas abertas (se não houver cronômetro rodando aqui) */
+window.addEventListener('storage', e => {
+  if (e.key !== STORAGE_KEY || !e.newValue || S.timer.running) return;
+  try { S = sanitizeState(JSON.parse(e.newValue)); render(); } catch (_) { /* ignora */ }
+});
+
+/* ---------- Inicialização ---------- */
+(function init() {
+  if (!Store.available) document.getElementById('storage-warning').classList.remove('hidden');
+  if (loaded.source === 'backup') setTimeout(() => toast('Os dados principais estavam corrompidos — restauramos a última cópia de segurança.', 'gold', 6000), 400);
+  if (loaded.source === 'corrupt') setTimeout(() => toast('Não foi possível ler os dados salvos. Iniciamos um perfil novo.', 'error', 6000), 400);
+
+  buildQuestionList();
+  // Retoma o cronômetro se estava rodando (credita o tempo decorrido)
+  if (S.timer.running) {
+    timerTick();
+    if (S.timer.running) setTimeout(() => toast(`Cronômetro retomado: ${TIMER_MODES[S.timer.mode].label}.`, 'info'), 300);
+  }
+  saveNow();
+  render();
+  setInterval(timerTick, 250);
+})();
+</script>
+</body>
+</html>
